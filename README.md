@@ -6,7 +6,7 @@
 
 <div align="center">
 
-An embeddable and extensible scheme dialect built in Rust.
+Ein einbettbarer und erweiterbarer Scheme-Dialekt, geschrieben in Rust.
 
 ![Actions Status](https://github.com/mattwparas/steel/workflows/Build/badge.svg)
 ![Actions Status](https://github.com/mattwparas/steel/workflows/Docker%20CI/badge.svg)
@@ -15,76 +15,76 @@ An embeddable and extensible scheme dialect built in Rust.
 [![Matrix Chat](https://img.shields.io/matrix/steel:matrix.org?logo=element&label=matrix)](https://matrix.to/#/#steel:matrix.org)
 
 <a href="https://mattwparas.github.io/steel-playground/dev">
-    <b>Try it on the Playground</b>
+    <b>Probieren Sie es im Playground</b>
 </a>
 ·
 <a href="https://mattwparas.github.io/steel/book">
-    <b>Read the Steel book (WIP)</b>
+    <b>Das Steel-Buch lesen (WIP)</b>
 </a>
 
 </div>
 
-## Getting Started
+## Erste Schritte
 
-This github repository contains a cli interpreter. To try it out on the online playground, go to the [Steel playground](https://mattwparas.github.io/steel-playground/dev). To get started using a repl with the crates, make sure you first have rust installed.
+Dieses Github-Repository enthält einen CLI-Interpreter. Um ihn online auszuprobieren, besuchen Sie den [Steel Playground](https://mattwparas.github.io/steel-playground/dev). Um einen REPL mit den Crates lokal zu verwenden, stellen Sie sicher, dass Rust installiert ist.
 
-Then, clone the repo and run the following command:
+Klonen Sie dann das Repo und führen Sie folgenden Befehl aus:
 
 ```bash
 cargo run
 ```
 
-This will launch a REPL instance that looks something like this:
+Dies startet eine REPL-Instanz, die etwa so aussieht:
 
 <p align="center">
   <img src="images/repl.gif" width="100%">
 </p>
 
-### Full install
+### Vollständige Installation
 
-If you'd like to install everything, just run the following command:
+Wenn Sie alles installieren möchten, führen Sie einfach folgenden Befehl aus:
 
 ```bash
 cargo xtask install
 ```
 
-This will install:
+Dies installiert:
 
-- The steel interpreter, `steel`
-- The dylib installer, `cargo-steel-lib` (also available via the interpreter)
-- The steel language server
-- The standard library, found under the `cogs` directory
+- Den Steel-Interpreter, `steel`
+- Den Dylib-Installer, `cargo-steel-lib` (auch über den Interpreter verfügbar)
+- Den Steel Language Server
+- Die Standardbibliothek, zu finden im `cogs`-Verzeichnis
 
-### Packages
+### Pakete
 
-If you would like to customize the location of installed packages, please set the `STEEL_HOME` environment variable. Steel currently assumes the default of `$HOME/.steel` if the environment variable is not already set.
+Wenn Sie den Speicherort der installierten Pakete anpassen möchten, setzen Sie bitte die Umgebungsvariable `STEEL_HOME`. Steel geht derzeit vom Standard `$HOME/.steel` aus, wenn die Umgebungsvariable nicht gesetzt ist.
 
-## About
+## Über
 
-`Steel` is an embeddable scheme interpreter, with a standalone cli included as well. Inspired largely by Racket, the language seeks to be ergonomic scheme variant helpful for embedding in applications, or to be used on its own with high performance functions implemented in Rust. The language implementation itself contains a fairly powerful macro system based on the `syntax-rules` style and a bytecode virtual machine. At the moment, it is mostly compliant with R5RS, only missing `let-syntax` support. Support for R7Rs is underway.
+`Steel` ist ein einbettbarer Scheme-Interpreter, der auch eine eigenständige CLI enthält. Inspiriert größtenteils von Racket, zielt die Sprache darauf ab, eine ergonomische Scheme-Variante zu sein, die hilfreich für die Einbettung in Anwendungen ist oder eigenständig mit leistungsstarken, in Rust implementierten Funktionen verwendet werden kann. Die Sprachimplementierung selbst enthält ein ziemlich mächtiges Makrosystem basierend auf dem `syntax-rules`-Stil und eine Bytecode-Virtual-Machine. Derzeit ist sie weitgehend konform mit R5RS, es fehlt nur die Unterstützung für `let-syntax`. Unterstützung für R7RS ist in Arbeit.
 
-> **Warning**
-> The API is relatively unstable with no guarantees, and may change at any time while pre 1.0. There are undoubtedly bugs that exist, and any major bug reports will be addressed quickly. That being said, I do use it as a daily driver for many scripting tasks myself.
+> **Warnung**
+> Die API ist relativ instabil ohne Garantien und kann sich jederzeit vor 1.0 ändern. Es gibt zweifellos Fehler, und alle größeren Fehlerberichte werden schnell bearbeitet. Davon abgesehen benutze ich es selbst als täglichen Treiber für viele Skriptaufgaben.
 
-## Features
+## Funktionen
 
-- `syntax-rules` style macros are supported
-- Easy integration with Rust functions and structs
-- Easily call a script from rust or via a separate file
-- Efficient - common functions and data structures are optimized for performance (`map`, `filter`, etc)
-- Higher order Contracts
-- Built in immutable data structures include:
-  - lists
-  - vectors
-  - hashmaps
-  - hashsets
+- `syntax-rules`-Stil Makros werden unterstützt
+- Einfache Integration mit Rust-Funktionen und Strukturen
+- Einfaches Aufrufen eines Skripts aus Rust oder über eine separate Datei
+- Effizient - gängige Funktionen und Datenstrukturen sind auf Leistung optimiert (`map`, `filter`, usw.)
+- Verträge höherer Ordnung
+- Eingebaute unveränderliche Datenstrukturen umfassen:
+  - Listen
+  - Vektoren
+  - Hashmaps
+  - Hashsets
 
-## Contracts
+## Verträge
 
-Inspired by Racket's higher order contracts, `Steel` implements\* higher order contracts to enable design by contract, made easy with a `define/contract` macro for easier ergonomics. Racket makes use of a concept known as _blame_ which seeks to identify the violating party - `Steel` does not quite have fully fleshed out blame but that is a work in progress. Here are some examples:
+Inspiriert von Rackets Verträgen höherer Ordnung, implementiert* `Steel` Verträge höherer Ordnung, um Design by Contract zu ermöglichen, vereinfacht durch ein `define/contract`-Makro für bessere Ergonomie. Racket nutzt ein Konzept namens _blame_, das versucht, die verletzende Partei zu identifizieren - `Steel` hat noch kein voll ausgearbeitetes Blame-System, aber daran wird gearbeitet. Hier sind einige Beispiele:
 
 ```scheme
-;; Simple flat contracts
+;; Einfache flache Verträge
 (define/contract (test x y)
     (->/c even? even? odd?)
     (+ x y 1))
@@ -95,14 +95,14 @@ Inspired by Racket's higher order contracts, `Steel` implements\* higher order c
     (->/c even? even? odd?)
     (+ x y 1))
 
-(test-violation 1 2) ;; contract violation
+(test-violation 1 2) ;; Vertragsverletzung
 
 ```
 
-Contracts are implemented as _values_, so they are bound to functions. This enables the use of contract checking on functions themselves since functions can be passed around:
+Verträge sind als _Werte_ implementiert, so dass sie an Funktionen gebunden sind. Dies ermöglicht die Überprüfung von Verträgen bei Funktionen selbst, da Funktionen herumgereicht werden können:
 
 ```scheme
-;; Higher order contracts, check on application
+;; Verträge höherer Ordnung, Überprüfung bei Anwendung
 (define/contract (higher-order func y)
     (->/c (->/c even? odd?) even? even?)
     (+ 1 (func y)))
@@ -113,13 +113,13 @@ Contracts are implemented as _values_, so they are bound to functions. This enab
     (->/c (->/c even? odd?) even? even?)
     (+ 1 (func y)))
 
-(higher-order-violation (lambda (x) (+ x 2)) 2) ;; contract violation
+(higher-order-violation (lambda (x) (+ x 2)) 2) ;; Vertragsverletzung
 ```
 
-Contracts on functions do not get checked until they are applied, so a function returning a _contracted_ function won't cause a violation until that function is actually used:
+Verträge bei Funktionen werden erst überprüft, wenn sie angewendet werden, sodass eine Funktion, die eine _vertraglich gebundene_ Funktion zurückgibt, keine Verletzung verursacht, bis diese Funktion tatsächlich verwendet wird:
 
 ```scheme
-;; More higher order contracts, get checked on application
+;; Weitere Verträge höherer Ordnung, werden bei Anwendung geprüft
 (define/contract (output)
     (->/c (->/c string? int?))
     (lambda (x) 10))
@@ -130,28 +130,28 @@ Contracts on functions do not get checked until they are applied, so a function 
 
 (accept (output)) ;; => "cool cool cool"
 
-;; different contracts on the argument
+;; unterschiedliche Verträge beim Argument
 (define/contract (accept-violation func)
     (->/c (->/c string? string?) string?)
     (func "applesauce")
     "cool cool cool")
 
-(accept-violation (output)) ;; contract violation
+(accept-violation (output)) ;; Vertragsverletzung
 
-;; generates a function
+;; erzeugt eine Funktion
 (define/contract (generate-closure)
     (->/c (->/c string? int?))
     (lambda (x) 10))
 
-;; calls generate-closure which should result in a contract violation
+;; ruft generate-closure auf, was zu einer Vertragsverletzung führen sollte
 (define/contract (accept-violation)
     (->/c (->/c string? string?))
     (generate-closure))
 
-((accept-violation) "test") ;; contract violation
+((accept-violation) "test") ;; Vertragsverletzung
 ```
 
-Perhaps a more nuanced case:
+Vielleicht ein nuancierterer Fall:
 
 ```scheme
 (define/contract (output)
@@ -163,14 +163,14 @@ Perhaps a more nuanced case:
     (output))
 
 
-((accept) "test") ;; contract violation 10.2 satisfies number? but _not_ int?
+((accept) "test") ;; Vertragsverletzung 10.2 erfüllt number?, aber _nicht_ int?
 ```
 
-\* Very much a work in progress
+\* Sehr stark in Arbeit
 
 ## Transducers
 
-Inspired by clojure's transducers, `Steel` has a similar object that is somewhere half way in between transducers and iterators. Consider the following:
+Inspiriert von Clojures Transducern hat `Steel` ein ähnliches Objekt, das irgendwo auf halbem Weg zwischen Transducern und Iteratoren liegt. Betrachten Sie folgendes:
 
 ```scheme
 
@@ -184,30 +184,30 @@ Inspired by clojure's transducers, `Steel` has a similar object that is somewher
     (taking 15)) ;; => <#iterator>
 ```
 
-Each of these expressions emit an `<#iterator>` object, which means they're compatible with `transduce`. `transduce` takes a transducer (i.e. `<#iterator>`) and a collection that can be iterated (`list`, `vector`, `stream`, `hashset`, `hashmap`, `string`, `struct`) and applies the transducer.
+Jeder dieser Ausdrücke gibt ein `<#iterator>`-Objekt aus, was bedeutet, dass sie mit `transduce` kompatibel sind. `transduce` nimmt einen Transducer (d.h. `<#iterator>`) und eine Sammlung, die iteriert werden kann (`list`, `vector`, `stream`, `hashset`, `hashmap`, `string`, `struct`) und wendet den Transducer an.
 
 ```scheme
-;; Accepts lists
+;; Akzeptiert Listen
 (transduce (list 1 2 3 4 5) (mapping (lambda (x) (+ x 1))) (into-list)) ;; => '(2 3 4 5 6)
 
-;; Accepts vectors
+;; Akzeptiert Vektoren
 (transduce (vector 1 2 3 4 5) (mapping (lambda (x) (+ x 1))) (into-vector)) ;; '#(2 3 4 5 6)
 
-;; Even accepts streams!
+;; Akzeptiert sogar Streams!
 (define (integers n)
     (stream-cons n (lambda () (integers (+ 1 n)))))
 
 (transduce (integers 0) (taking 5) (into-list)) ;; => '(0 1 2 3 4)
 ```
 
-Transduce accepts a reducer function as well. Above we used `into-list` and `into-vector`, but below we can use any arbitrary reducer:
+Transduce akzeptiert auch eine Reducer-Funktion. Oben haben wir `into-list` und `into-vector` verwendet, aber unten können wir jeden beliebigen Reducer verwenden:
 
 ```scheme
 ;; (-> transducer reducing-function initial-value iterable)
 (transduce (list 0 1 2 3) (mapping (lambda (x) (+ x 1))) (into-reducer + 0)) ;; => 10
 ```
 
-Compose just combines the iterator functions and lets us avoid intermediate allocation. The composition works left to right - it chains each value through the functions and then accumulates into the output type. See the following:
+Compose kombiniert einfach die Iterator-Funktionen und lässt uns zwischenzeitliche Allokationen vermeiden. Die Komposition funktioniert von links nach rechts - sie verkettet jeden Wert durch die Funktionen und akkumuliert dann in den Ausgabetyp. Siehe folgendes:
 
 ```scheme
 (define xf
@@ -219,9 +219,9 @@ Compose just combines the iterator functions and lets us avoid intermediate allo
 (transduce (range 0 100) xf (into-list)) ;; => '(1 3 5 7 9)
 ```
 
-## Modules
+## Module
 
-In order to support a growing codebase, Steel has module support for projects spanning multiple files. Steel files can `provide` values (with contracts attached) and `require` modules from other files:
+Um eine wachsende Codebasis zu unterstützen, hat Steel Modulunterstützung für Projekte, die sich über mehrere Dateien erstrecken. Steel-Dateien können Werte `provide`n (bereitstellen, mit angehängten Verträgen) und Module aus anderen Dateien `require`n (anfordern):
 
 ```scheme
 ;; main.scm
@@ -248,204 +248,206 @@ In order to support a growing codebase, Steel has module support for projects sp
 (displayln (even->odd 1))
 ```
 
-Here we can see if we were to run `main` that it would include the contents of `provide`, and only provided values would be accessible from `main`. The contract is attached at the contract boundary, so inside the `provide` module, you can violate the contract, but outside the module the contract will be applied.
+Hier können wir sehen, dass wenn wir `main` ausführen würden, es den Inhalt von `provide` einschließen würde, und nur bereitgestellte Werte wären von `main` aus zugänglich. Der Vertrag wird an der Vertragsgrenze angehängt, also kann man innerhalb des `provide`-Moduls den Vertrag verletzen, aber außerhalb des Moduls wird der Vertrag angewendet.
 
-A few notes on modules:
+Ein paar Anmerkungen zu Modulen:
 
-- Cyclical dependencies are not allowed
-- Modules will be only compiled once and used across multiple files. If `A` requires `B` and `C`, and `B` requires `C`, `C` will be compiled once and shared between `A` and `B`.
-- Modules will be recompiled when changed, and any dependent files will also be recompiled as necessary
+- Zyklische Abhängigkeiten sind nicht erlaubt
+- Module werden nur einmal kompiliert und über mehrere Dateien hinweg verwendet. Wenn `A` `B` und `C` benötigt, und `B` `C` benötigt, wird `C` einmal kompiliert und zwischen `A` und `B` geteilt.
+- Module werden bei Änderungen neu kompiliert, und alle abhängigen Dateien werden ebenfalls nach Bedarf neu kompiliert.
 
-## Performance
+## Leistung
 
-Preliminary benchmarks show the following on my machine:
+Vorläufige Benchmarks zeigen folgendes auf meinem Rechner:
 
 | Benchmark | Steel    | Python   |
 | --------- | -------- | -------- |
 | (fib 28)  | 63.383ms | 65.10 ms |
 | (ack 3 3) | 0.303 ms | 0.195 ms |
 
-## Examples of embedding Rust values in the virtual machine
+## Beispiele für das Einbetten von Rust-Werten in die virtuelle Maschine
 
-Rust values, types, and functions are easily embedded into Steel. Using the `register_fn` call, you can embed functions easily:
-
-```rust
-use steel_vm::engine::Engine;
-use steel_vm::register_fn::RegisterFn;
-
-fn external_function(arg1: usize, arg2: usize) -> usize {
-    arg1 + arg2
-}
-
-fn option_function(arg1: Option<String>) -> Option<String> {
-    arg1
-}
-
-fn result_function(arg1: Option<String>) -> Result<String, String> {
-    if let Some(inner) = arg1 {
-        Ok(inner)
-    } else {
-        Err("Got a none".to_string())
-    }
-}
-
-pub fn main() {
-    let mut vm = Engine::new();
-
-    // Here we can register functions
-    // Any function can accept parameters that implement `FromSteelVal` and
-    // return values that implement `IntoSteelVal`
-    vm.register_fn("external-function", external_function);
-
-    // See the docs for more information about `FromSteelVal` and `IntoSteelVal`
-    // but we can see even functions that accept/return Option<T> or Result<T,E>
-    // can be registered
-    vm.register_fn("option-function", option_function);
-
-    // Result values will map directly to errors in the VM and bubble back up
-    vm.register_fn("result-function", result_function);
-
-    vm.run(
-        r#"
-        (define foo (external-function 10 25))
-        (define bar (option-function "applesauce"))
-        (define baz (result-function "bananas"))
-    "#,
-    )
-    .unwrap();
-
-    let foo = vm.extract::<usize>("foo").unwrap();
-    println!("foo: {}", foo);
-    assert_eq!(35, foo);
-
-    // Can also extract a value by specifying the type on the variable
-    let bar: String = vm.extract("bar").unwrap();
-    println!("bar: {}", bar);
-    assert_eq!("applesauce".to_string(), bar);
-
-    let baz: String = vm.extract("baz").unwrap();
-    println!("baz: {}", baz);
-    assert_eq!("bananas".to_string(), baz);
-}
-```
-
-We can also embed structs themselves:
+Rust-Werte, -Typen und -Funktionen können einfach in Steel eingebettet werden. Mit dem `register_fn`-Aufruf können Sie Funktionen einfach einbetten:
 
 ```rust
-use steel_vm::engine::Engine;
-use steel_vm::register_fn::RegisterFn;
+rost::rost! {
+    benutze steel_vm::engine::Engine;
+    benutze steel_vm::register_fn::RegisterFn;
 
-use steel_derive::Steel;
-
-// In order to register a type with Steel,
-// it must implement Clone, Debug, and Steel
-#[derive(Clone, Debug, Steel, PartialEq)]
-pub struct ExternalStruct {
-    foo: usize,
-    bar: String,
-    baz: f64,
-}
-
-impl ExternalStruct {
-    pub fn new(foo: usize, bar: String, baz: f64) -> Self {
-        ExternalStruct { foo, bar, baz }
+    fk external_function(arg1: usize, arg2: usize) -> usize {
+        arg1 + arg2
     }
 
-    // Embedding functions that take self by value
-    pub fn method_by_value(self) -> usize {
-        self.foo
+    fk option_function(arg1: Möglichkeit<Zeichenkette>) -> Möglichkeit<Zeichenkette> {
+        arg1
     }
 
-    pub fn method_by_reference(&self) -> usize {
-        self.foo
+    fk result_function(arg1: Möglichkeit<Zeichenkette>) -> Ergebnis<Zeichenkette, Zeichenkette> {
+        wenn lass Etwas(inner) = arg1 {
+            Gut(inner)
+        } anderenfalls {
+            Fehler("Got a none".to_string())
+        }
     }
 
-    // Setters should update the value and return a new instance (functional set)
-    pub fn set_foo(mut self, foo: usize) -> Self {
-        self.foo = foo;
-        self
-    }
-}
+    öffentlich fk main() {
+        lass änd vm = Engine::new();
 
-pub fn main() {
-    let mut vm = Engine::new();
+        // Hier können wir Funktionen registrieren
+        // Jede Funktion kann Parameter akzeptieren, die `FromSteelVal` implementieren und
+        // Werte zurückgeben, die `IntoSteelVal` implementieren
+        vm.register_fn("external-function", external_function);
 
-    // Registering a type gives access to a predicate for the type
-    vm.register_type::<ExternalStruct>("ExternalStruct?");
+        // Siehe die Dokumentation für weitere Informationen über `FromSteelVal` und `IntoSteelVal`
+        // aber wir können sehen, dass sogar Funktionen, die Option<T> oder Result<T,E> akzeptieren/zurückgeben
+        // registriert werden können
+        vm.register_fn("option-function", option_function);
 
-    // Structs in steel typically have a constructor that is the name of the struct
-    vm.register_fn("ExternalStruct", ExternalStruct::new);
+        // Ergebniswerte werden direkt auf Fehler in der VM abgebildet und sprudeln zurück nach oben
+        vm.register_fn("result-function", result_function);
 
-    // register_fn can be chained
-    vm.register_fn("method-by-value", ExternalStruct::method_by_value)
-        .register_fn("method-by-reference", ExternalStruct::method_by_reference)
-        .register_fn("set-foo", ExternalStruct::set_foo);
-
-    let external_struct = ExternalStruct::new(1, "foo".to_string(), 12.4);
-
-    // Registering an external value is fallible if the conversion fails for some reason
-    // For instance, registering an Err(T) is fallible. However, most implementation outside of manual
-    // ones should not fail
-    vm.register_external_value("external-struct", external_struct)
-        .unwrap();
-
-    let output = vm
-        .run(
+        vm.run(
             r#"
-            (define new-external-struct (set-foo external-struct 100))
-            (define get-output (method-by-value external-struct))
-            (define second-new-external-struct (ExternalStruct 50 "bananas" 72.6))
-            "last-result"
+            (define foo (external-function 10 25))
+            (define bar (option-function "applesauce"))
+            (define baz (result-function "bananas"))
         "#,
         )
-        .unwrap();
+        .entpacken();
 
-    let new_external_struct = vm.extract::<ExternalStruct>("new-external-struct").unwrap();
-    println!("new_external_struct: {:?}", new_external_struct);
-    assert_eq!(
-        ExternalStruct::new(100, "foo".to_string(), 12.4),
-        new_external_struct
-    );
+        lass foo = vm.extract::<usize>("foo").entpacken();
+        ausgabe!("foo: {}", foo);
+        behaupte_gleich!(35, foo);
 
-    // Can also extract a value by specifying the type on the variable
-    let get_output: usize = vm.extract("get-output").unwrap();
-    println!("get_output: {}", get_output);
-    assert_eq!(1, get_output);
+        // Kann auch einen Wert extrahieren, indem der Typ an der Variable angegeben wird
+        lass bar: Zeichenkette = vm.extract("bar").entpacken();
+        ausgabe!("bar: {}", bar);
+        behaupte_gleich!("applesauce".to_string(), bar);
 
-    let second_new_external_struct: ExternalStruct =
-        vm.extract("second-new-external-struct").unwrap();
-    println!(
-        "second_new_external_struct: {:?}",
-        second_new_external_struct
-    );
-    assert_eq!(
-        ExternalStruct::new(50, "bananas".to_string(), 72.6),
-        second_new_external_struct
-    );
-
-    // We also get the output of the VM as the value of every expression run
-    // we can inspect the results just by printing like so
-    println!("{:?}", output);
+        lass baz: Zeichenkette = vm.extract("baz").entpacken();
+        ausgabe!("baz: {}", baz);
+        behaupte_gleich!("bananas".to_string(), baz);
+    }
 }
 ```
 
-See the examples folder for more examples on embedding values and interacting with the outside world.
+Wir können auch Strukturen selbst einbetten:
 
-## License
+```rust
+rost::rost! {
+    benutze steel_vm::engine::Engine;
+    benutze steel_vm::register_fn::RegisterFn;
 
-Licensed under either of
+    benutze steel_derive::Steel;
+
+    // Um einen Typ mit Steel zu registrieren,
+    // muss er Clone, Debug und Steel implementieren
+    #[derive(Clone, Debug, Steel, PartialEq)]
+    öffentlich struktur ExternalStruct {
+        foo: usize,
+        bar: Zeichenkette,
+        baz: f64,
+    }
+
+    umstz ExternalStruct {
+        öffentlich fk new(foo: usize, bar: Zeichenkette, baz: f64) -> Selbst {
+            ExternalStruct { foo, bar, baz }
+        }
+
+        // Einbetten von Funktionen, die self per Value nehmen
+        öffentlich fk method_by_value(selbst) -> usize {
+            selbst.foo
+        }
+
+        öffentlich fk method_by_reference(&selbst) -> usize {
+            selbst.foo
+        }
+
+        // Setter sollten den Wert aktualisieren und eine neue Instanz zurückgeben (funktionales Setzen)
+        öffentlich fk set_foo(änd selbst, foo: usize) -> Selbst {
+            selbst.foo = foo;
+            selbst
+        }
+    }
+
+    öffentlich fk main() {
+        lass änd vm = Engine::new();
+
+        // Das Registrieren eines Typs gibt Zugriff auf ein Prädikat für den Typ
+        vm.register_type::<ExternalStruct>("ExternalStruct?");
+
+        // Strukturen in Steel haben typischerweise einen Konstruktor, der der Name der Struktur ist
+        vm.register_fn("ExternalStruct", ExternalStruct::new);
+
+        // register_fn kann verkettet werden
+        vm.register_fn("method-by-value", ExternalStruct::method_by_value)
+            .register_fn("method-by-reference", ExternalStruct::method_by_reference)
+            .register_fn("set-foo", ExternalStruct::set_foo);
+
+        lass external_struct = ExternalStruct::new(1, "foo".to_string(), 12.4);
+
+        // Das Registrieren eines externen Werts ist fehlbar, wenn die Konvertierung aus irgendeinem Grund fehlschlägt
+        // Zum Beispiel ist das Registrieren eines Err(T) fehlbar. Die meisten Implementierungen außerhalb von manuellen
+        // sollten jedoch nicht fehlschlagen
+        vm.register_external_value("external-struct", external_struct)
+            .entpacken();
+
+        lass output = vm
+            .run(
+                r#"
+                (define new-external-struct (set-foo external-struct 100))
+                (define get-output (method-by-value external-struct))
+                (define second-new-external-struct (ExternalStruct 50 "bananas" 72.6))
+                "last-result"
+            "#,
+            )
+            .entpacken();
+
+        lass new_external_struct = vm.extract::<ExternalStruct>("new-external-struct").entpacken();
+        ausgabe!("new_external_struct: {:?}", new_external_struct);
+        behaupte_gleich!(
+            ExternalStruct::new(100, "foo".to_string(), 12.4),
+            new_external_struct
+        );
+
+        // Kann auch einen Wert extrahieren, indem der Typ an der Variable angegeben wird
+        lass get_output: usize = vm.extract("get-output").entpacken();
+        ausgabe!("get_output: {}", get_output);
+        behaupte_gleich!(1, get_output);
+
+        lass second_new_external_struct: ExternalStruct =
+            vm.extract("second-new-external-struct").entpacken();
+        ausgabe!(
+            "second_new_external_struct: {:?}",
+            second_new_external_struct
+        );
+        behaupte_gleich!(
+            ExternalStruct::new(50, "bananas".to_string(), 72.6),
+            second_new_external_struct
+        );
+
+        // Wir erhalten auch die Ausgabe der VM als Wert jedes ausgeführten Ausdrucks
+        // wir können die Ergebnisse einfach durch Drucken inspizieren, wie so
+        ausgabe!("{:?}", output);
+    }
+}
+```
+
+Siehe den examples-Ordner für weitere Beispiele zum Einbetten von Werten und zur Interaktion mit der Außenwelt.
+
+## Lizenz
+
+Lizenziert unter entweder
 
 - Apache License, Version 2.0
-  ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+  ([LICENSE-APACHE](LICENSE-APACHE) oder http://www.apache.org/licenses/LICENSE-2.0)
 - MIT license
   ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
 
-at your option.
+nach Ihrer Wahl.
 
-## Contribution
+## Mitwirken
 
-Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
-dual licensed as above, without any additional terms or conditions.
+Sofern Sie nichts anderes ausdrücklich angeben, gilt jeder Beitrag, der von Ihnen absichtlich zur Aufnahme in das Werk eingereicht wurde, wie in der Apache-2.0-Lizenz definiert, als dual lizenziert wie oben, ohne zusätzliche Bedingungen oder Konditionen.
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md).
+Siehe [CONTRIBUTING.md](./CONTRIBUTING.md).

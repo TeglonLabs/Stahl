@@ -1,10 +1,8 @@
-# Contributing to Steel
+# Mitwirken an Steel
 
-## Getting Started
+## Erste Schritte
 
-The following will clone Steel from the primary repository and run the test
-suite. You should have previously setup a [recent rust tool
-chain](https://www.rust-lang.org/tools/install).
+Das Folgende klont Steel aus dem primären Repository und führt die Test-Suite aus. Sie sollten zuvor eine [aktuelle Rust-Toolchain](https://www.rust-lang.org/tools/install) eingerichtet haben.
 
 ```bash
 git clone https://github.com/mattwparas/steel.git &&
@@ -13,28 +11,24 @@ cargo xtask install &&
 cargo test --all
 ```
 
-This will install:
+Dies installiert:
 
-* The steel interpreter, `steel`
-* The dylib installer, `cargo-steel-lib` (also available via the interpreter)
-* The steel language server
-* The standard library, found under the `cogs` directory
+* Den Steel-Interpreter, `steel`
+* Den Dylib-Installer, `cargo-steel-lib` (auch über den Interpreter verfügbar)
+* Den Steel Language Server
+* Die Standardbibliothek, zu finden im `cogs`-Verzeichnis
 
-## Commit message style
+## Commit-Nachrichten-Stil
 
-Steel does not employ a strict commit message style or convention. Try to
-follow best practices by keeping the first line concise and descriptive,
-otherwise use your best judgement.
+Steel verwendet keinen strengen Commit-Nachrichten-Stil oder eine Konvention. Versuchen Sie, Best Practices zu folgen, indem Sie die erste Zeile prägnant und beschreibend halten, ansonsten verwenden Sie Ihr bestes Urteilsvermögen.
 
-## Submitting Patches
+## Einreichen von Patches
 
-IMPORTANT: By submitting a patch, you agree that your work will be licensed
-under the license used by the project.
+WICHTIG: Durch das Einreichen eines Patches erklären Sie sich damit einverstanden, dass Ihre Arbeit unter der vom Projekt verwendeten Lizenz lizenziert wird.
 
-Follow common advice when submitting a patch:
+Befolgen Sie allgemeine Ratschläge beim Einreichen eines Patches:
 
-- Keep the patch focused.
-- Include tests.
-- Work in a separate branch, not `master`.
-- Before working on "big ideas", open an issue to discuss approaches or
-  requirements to limit wasted effort.
+- Halten Sie den Patch fokussiert.
+- Fügen Sie Tests hinzu.
+- Arbeiten Sie in einem separaten Branch, nicht `master`.
+- Bevor Sie an "großen Ideen" arbeiten, öffnen Sie ein Issue, um Ansätze oder Anforderungen zu diskutieren, um verschwendeten Aufwand zu begrenzen.

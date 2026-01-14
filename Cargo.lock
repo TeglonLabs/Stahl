@@ -3073,6 +3073,11 @@ dependencies = [
 ]
 
 [[package]]
+name = "rost"
+version = "0.1.0"
+source = "git+https://github.com/michidk/rost.git#dc31420c97287f8d0c38cf877f24ea217a9b7c15"
+
+[[package]]
 name = "rusqlite"
 version = "0.32.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3619,6 +3624,7 @@ dependencies = [
  "log",
  "mimalloc",
  "once_cell",
+ "rost",
  "serde",
  "steel-core",
  "steel-derive",

@@ -2,293 +2,295 @@ extern crate steel;
 extern crate steel_derive;
 extern crate steel_repl;
 
-use steel::steel_vm::engine::Engine;
-use steel_doc::walk_dir;
-use steel_repl::{register_readline_module, run_repl};
+rost::rost! {
 
-use std::path::PathBuf;
-use std::process;
-use std::{error::Error, fs};
+    benutze steel::steel_vm::engine::Engine;
+    benutze steel_doc::walk_dir;
+    benutze steel_repl::{register_readline_module, run_repl};
 
-use clap::{CommandFactory, Parser};
+    benutze std::path::PathBuf;
+    benutze std::process;
+    benutze std::{error::Fehlfunktion, fs};
 
-/// Steel Interpreter
-#[derive(Parser, Debug)]
-#[clap(author, version, about, long_about = None, trailing_var_arg = true, allow_hyphen_values = true, disable_help_flag = true, disable_help_subcommand = true)]
-pub struct Args {
-    /// What action to perform on this file, the absence of a subcommand indicates that the given file (if any)
-    /// will be run as the entrypoint
-    #[clap(subcommand)]
-    action: Option<EmitAction>,
+    benutze clap::{CommandFactory, Parser};
 
-    /// The existence of this argument indicates whether we want to run the repl, or interpret this file
-    default_file: Option<PathBuf>,
+    /// Steel Interpreter
+    #[derive(Parser, Debug)]
+    #[clap(author, version, about, long_about = None, trailing_var_arg = true, allow_hyphen_values = true, disable_help_flag = true, disable_help_subcommand = true)]
+    öffentlich struktur Argumente {
+        /// What action to perform on this file, the absence of a subcommand indicates that the given file (if any)
+        /// will be run as the entrypoint
+        #[clap(subcommand)]
+        action: Möglichkeit<AusgabeAktion>,
 
-    /// Arguments to the input file
-    arguments: Vec<String>,
-}
+        /// The existence of this argument indicates whether we want to run the repl, or interpret this file
+        default_file: Möglichkeit<PathBuf>,
 
-#[derive(clap::Subcommand, Debug)]
-enum EmitAction {
-    /// Output a debug display of the fully transformed bytecode
-    Bytecode { default_file: Option<PathBuf> },
-    /// Print a debug display of the fully expanded AST
-    Ast {
-        default_file: Option<PathBuf>,
-        #[arg(long)]
-        expanded: Option<bool>,
-        #[arg(long)]
-        pretty: Option<bool>,
-    },
-    /// Enter the repl with the given file loaded
-    Interactive {
-        default_file: Option<PathBuf>,
-        arguments: Vec<String>,
-    },
-    /// Tests the module - only tests modules which provide values
-    Test { default_file: Option<String> },
-    /// Generate the documentation for a file
-    Doc { default_file: Option<PathBuf> },
-    /// Experimental
-    Compile { file: PathBuf },
+        /// Arguments to the input file
+        arguments: Vektor<Zeichenkette>,
+    }
 
-    /// Build a dylib from the root of this directory
-    Dylib,
-}
+    #[derive(clap::Subcommand, Debug)]
+    aufzählung AusgabeAktion {
+        /// Output a debug display of the fully transformed bytecode
+        Bytecode { default_file: Möglichkeit<PathBuf> },
+        /// Print a debug display of the fully expanded AST
+        Ast {
+            default_file: Möglichkeit<PathBuf>,
+            #[arg(long)]
+            expanded: Möglichkeit<bool>,
+            #[arg(long)]
+            pretty: Möglichkeit<bool>,
+        },
+        /// Enter the repl with the given file loaded
+        Interactive {
+            default_file: Möglichkeit<PathBuf>,
+            arguments: Vektor<Zeichenkette>,
+        },
+        /// Tests the module - only tests modules which provide values
+        Test { default_file: Möglichkeit<Zeichenkette> },
+        /// Generate the documentation for a file
+        Doc { default_file: Möglichkeit<PathBuf> },
+        /// Experimental
+        Compile { file: PathBuf },
 
-#[cfg(feature = "build-info")]
-const VERSION_MESSAGE: &str = concat!(
-    env!("CARGO_PKG_VERSION"),
-    "-",
-    env!("VERGEN_RUSTC_SEMVER"),
-    " (",
-    env!("VERGEN_BUILD_DATE"),
-    ")"
-);
+        /// Build a dylib from the root of this directory
+        Dylib,
+    }
 
-pub fn run(clap_args: Args) -> Result<(), Box<dyn Error>> {
-    let mut vm = Engine::new();
-    vm.register_value("std::env::args", steel::SteelVal::ListV(vec![].into()));
+    #[cfg(feature = "build-info")]
+    konstante VERSION_MESSAGE: &str = concat!(
+        env!("CARGO_PKG_VERSION"),
+        "-",
+        env!("VERGEN_RUSTC_SEMVER"),
+        " (",
+        env!("VERGEN_BUILD_DATE"),
+        ")"
+    );
 
-    register_readline_module(&mut vm);
+    öffentlich fk ausführen(clap_args: Argumente) -> Ergebnis<(), Schachtel<dynamisch Fehlfunktion>> {
+        lass änd vm = Engine::new();
+        vm.register_value("std::env::args", steel::SteelVal::ListV(vec![].hinein()));
 
-    match clap_args {
-        Args {
-            default_file: None,
-            action: None,
-            ..
-        } => {
-            // if arguments.iter().find(|x| x.as_str() == "--help").is_some() {
-            //     println!("{}", Args::command().render_long_help());
-            // }
+        register_readline_module(&mut vm);
 
-            #[cfg(feature = "build-info")]
-            {
-                println!("{}", VERSION_MESSAGE);
-            }
-            run_repl(vm)?;
-            Ok(())
-        }
+        entspreche clap_args {
+            Argumente {
+                default_file: Nichts,
+                action: Nichts,
+                ..
+            } => {
+                // if arguments.iter().find(|x| x.as_str() == "--help").is_some() {
+                //     println!("{}", Args::command().render_long_help());
+                // }
 
-        Args {
-            default_file: Some(path),
-            action: None,
-            arguments,
-        } => {
-            if path
-                .as_os_str()
-                .to_str()
-                .map(|x| x == "--help")
-                .unwrap_or_default()
-            {
-                println!("{}", Args::command().render_long_help());
+                #[cfg(feature = "build-info")]
+                {
+                    ausgabe!("{}", VERSION_MESSAGE);
+                }
+                run_repl(vm)?;
+                Gut(())
             }
 
-            vm.register_value(
-                "std::env::args",
-                steel::SteelVal::ListV(
-                    arguments
-                        .into_iter()
-                        .map(|x| steel::SteelVal::StringV(x.into()))
-                        .collect(),
-                ),
-            );
+            Argumente {
+                default_file: Etwas(path),
+                action: Nichts,
+                arguments,
+            } => {
+                wenn path
+                    .as_os_str()
+                    .to_str()
+                    .zuordnen(|x| x == "--help")
+                    .unwrap_or_default()
+                {
+                    ausgabe!("{}", Argumente::command().render_long_help());
+                }
 
-            let contents = fs::read_to_string(&path)?;
-            let res = vm.compile_and_run_raw_program_with_path(contents.clone(), path.clone());
-
-            if let Err(e) = res {
-                vm.raise_error(e.clone());
-                process::exit(1);
-            }
-
-            Ok(())
-        }
-
-        Args {
-            default_file: None,
-            action: Some(EmitAction::Test { default_file }),
-            ..
-        } => {
-            let file_or_current_dir: String = default_file.unwrap_or(".".to_string());
-            if let Some(path) = PathBuf::from(file_or_current_dir).to_str() {
-                let mut vm = Engine::new();
                 vm.register_value(
                     "std::env::args",
-                    steel::SteelVal::ListV(vec![path.to_string().into()].into()),
+                    steel::SteelVal::ListV(
+                        arguments
+                            .zu_wieder()
+                            .zuordnen(|x| steel::SteelVal::StringV(x.hinein()))
+                            .sammeln(),
+                    ),
                 );
-                let test_script = include_str!("../cogs/test-runner.scm");
-                if let Err(e) = vm.run(test_script) {
+
+                lass contents = fs::read_to_string(&path)?;
+                lass res = vm.compile_and_run_raw_program_with_path(contents.clone(), path.clone());
+
+                wenn lass Fehler(e) = res {
                     vm.raise_error(e.clone());
-                    return Err(Box::new(e));
+                    process::exit(1);
                 }
+
+                Gut(())
             }
-            Ok(())
-        }
-        Args {
-            default_file: None,
-            action: Some(EmitAction::Doc {
-                default_file: Some(path),
-            }),
-            ..
-        } => {
-            let mut writer = std::io::BufWriter::new(std::io::stdout());
-            walk_dir(&mut writer, path, &mut vm)?;
-            Ok(())
-        }
 
-        Args {
-            default_file: None,
-            action:
-                Some(EmitAction::Bytecode {
-                    default_file: Some(path),
-                }),
-            ..
-        } => {
-            let contents = fs::read_to_string(&path)?;
-            let program = vm.emit_raw_program(contents.clone(), path.clone());
-
-            match program {
-                Ok(program) => {
-                    vm.debug_print_build(path.to_str().unwrap().to_string(), program)
-                        .unwrap();
+            Argumente {
+                default_file: Nichts,
+                action: Etwas(AusgabeAktion::Test { default_file }),
+                ..
+            } => {
+                lass file_or_current_dir: Zeichenkette = default_file.unwrap_or(".".to_string());
+                wenn lass Etwas(path) = PathBuf::von(file_or_current_dir).to_str() {
+                    lass änd vm = Engine::new();
+                    vm.register_value(
+                        "std::env::args",
+                        steel::SteelVal::ListV(vec![path.to_string().hinein()].hinein()),
+                    );
+                    lass test_script = include_str!("../cogs/test-runner.scm");
+                    wenn lass Fehler(e) = vm.run(test_script) {
+                        vm.raise_error(e.clone());
+                        zurückgebe Fehler(Schachtel::new(e));
+                    }
                 }
-                Err(e) => vm.raise_error(e),
+                Gut(())
+            }
+            Argumente {
+                default_file: Nichts,
+                action: Etwas(AusgabeAktion::Doc {
+                    default_file: Etwas(path),
+                }),
+                ..
+            } => {
+                lass änd writer = std::io::BufWriter::new(std::io::stdout());
+                walk_dir(&mut writer, path, &mut vm)?;
+                Gut(())
             }
 
-            Ok(())
-        }
+            Argumente {
+                default_file: Nichts,
+                action:
+                    Etwas(AusgabeAktion::Bytecode {
+                        default_file: Etwas(path),
+                    }),
+                ..
+            } => {
+                lass contents = fs::read_to_string(&path)?;
+                lass program = vm.emit_raw_program(contents.clone(), path.clone());
 
-        Args {
-            default_file: None,
-            action:
-                Some(EmitAction::Ast {
-                    default_file: Some(path),
-                    expanded,
-                    pretty,
-                }),
-            ..
-        } => {
-            let contents = fs::read_to_string(path.clone())?;
-
-            let expanded = expanded.unwrap_or(true);
-            let pretty = pretty.unwrap_or(true);
-
-            let res = match (expanded, pretty) {
-                (true, true) => vm.emit_fully_expanded_ast_to_string(&contents, Some(path.clone())),
-                (true, false) => vm
-                    .emit_fully_expanded_ast(&contents, Some(path.clone()))
-                    .map(|ast| format!("{:#?}", ast)),
-                (false, true) => Engine::emit_ast_to_string(&contents),
-                (false, false) => Engine::emit_ast(&contents).map(|ast| format!("{:#?}", ast)),
-            };
-
-            match res {
-                Ok(ast) => println!("{ast}"),
-                Err(e) => vm.raise_error(e),
-            }
-
-            Ok(())
-        }
-
-        Args {
-            default_file: None,
-            action:
-                Some(EmitAction::Interactive {
-                    default_file: Some(path),
-                    arguments: _,
-                }),
-            ..
-        } => {
-            let core_libraries = &[steel::stdlib::PRELUDE];
-
-            for core in core_libraries {
-                let res = vm.compile_and_run_raw_program(*core);
-                if let Err(e) = res {
-                    eprintln!("{e}");
-                    return Ok(());
+                entspreche program {
+                    Gut(program) => {
+                        vm.debug_print_build(path.to_str().entpacken().to_string(), program)
+                            .entpacken();
+                    }
+                    Fehler(e) => vm.raise_error(e),
                 }
+
+                Gut(())
             }
 
-            let contents =
-                fs::read_to_string(&path).expect("Something went wrong reading the file");
-            let res = vm.compile_and_run_raw_program_with_path(contents.clone(), path.clone());
+            Argumente {
+                default_file: Nichts,
+                action:
+                    Etwas(AusgabeAktion::Ast {
+                        default_file: Etwas(path),
+                        expanded,
+                        pretty,
+                    }),
+                ..
+            } => {
+                lass contents = fs::read_to_string(path.clone())?;
 
-            if let Err(e) = res {
-                vm.raise_error(e);
+                lass expanded = expanded.unwrap_or(wahr);
+                lass pretty = pretty.unwrap_or(wahr);
+
+                lass res = entspreche (expanded, pretty) {
+                    (wahr, wahr) => vm.emit_fully_expanded_ast_to_string(&contents, Etwas(path.clone())),
+                    (wahr, falsch) => vm
+                        .emit_fully_expanded_ast(&contents, Etwas(path.clone()))
+                        .zuordnen(|ast| format!("{:#?}", ast)),
+                    (falsch, wahr) => Engine::emit_ast_to_string(&contents),
+                    (falsch, falsch) => Engine::emit_ast(&contents).zuordnen(|ast| format!("{:#?}", ast)),
+                };
+
+                entspreche res {
+                    Gut(ast) => ausgabe!("{ast}"),
+                    Fehler(e) => vm.raise_error(e),
+                }
+
+                Gut(())
             }
 
-            run_repl(vm)?;
-            Ok(())
-        }
+            Argumente {
+                default_file: Nichts,
+                action:
+                    Etwas(AusgabeAktion::Interactive {
+                        default_file: Etwas(path),
+                        arguments: _,
+                    }),
+                ..
+            } => {
+                lass core_libraries = &[steel::stdlib::PRELUDE];
 
-        Args {
-            default_file: None,
-            action: Some(EmitAction::Compile { file }),
-            ..
-        } => {
-            println!("---- Warning: This is an experimental feature ----");
+                für core in core_libraries {
+                    lass res = vm.compile_and_run_raw_program(*core);
+                    wenn lass Fehler(e) = res {
+                        eprintln!("{e}");
+                        zurückgebe Gut(());
+                    }
+                }
 
-            let entrypoint =
-                fs::read_to_string(&file).expect("Something went wrong reading the file");
+                lass contents =
+                    fs::read_to_string(&path).erwarte("Something went wrong reading the file");
+                lass res = vm.compile_and_run_raw_program_with_path(contents.clone(), path.clone());
 
-            // Something went wrong - TODO: Raise the error correctly
-            let non_interactive_program =
-                Engine::create_non_interactive_program_image(entrypoint, file).unwrap();
+                wenn lass Fehler(e) = res {
+                    vm.raise_error(e);
+                }
 
-            let mut temporary_output = PathBuf::from("steel_target/src");
-
-            if !temporary_output.exists() {
-                std::fs::create_dir_all(&temporary_output).unwrap();
-            } else {
-                // Clean up I guess?
-                std::fs::remove_dir_all(&temporary_output).unwrap();
-                std::fs::create_dir_all(&temporary_output).unwrap();
+                run_repl(vm)?;
+                Gut(())
             }
 
-            temporary_output.push("program.bin");
+            Argumente {
+                default_file: Nichts,
+                action: Etwas(AusgabeAktion::Compile { file }),
+                ..
+            } => {
+                ausgabe!("---- Warning: This is an experimental feature ----");
 
-            // This probably needs to get stashed in some temporary target directory?
-            non_interactive_program.write_bytes_to_file(&temporary_output);
+                lass entrypoint =
+                    fs::read_to_string(&file).erwarte("Something went wrong reading the file");
 
-            temporary_output.pop();
+                // Something went wrong - TODO: Raise the error correctly
+                lass non_interactive_program =
+                    Engine::create_non_interactive_program_image(entrypoint, file).entpacken();
 
-            let rust_entrypoint = r#"
+                lass änd temporary_output = PathBuf::von("steel_target/src");
+
+                wenn !temporary_output.exists() {
+                    std::fs::create_dir_all(&temporary_output).entpacken();
+                } anderenfalls {
+                    // Clean up I guess?
+                    std::fs::remove_dir_all(&temporary_output).entpacken();
+                    std::fs::create_dir_all(&temporary_output).entpacken();
+                }
+
+                temporary_output.drücke("program.bin");
+
+                // This probably needs to get stashed in some temporary target directory?
+                non_interactive_program.write_bytes_to_file(&temporary_output);
+
+                temporary_output.pop();
+
+                lass rust_entrypoint = r#"
 fn main() {
     steel::steel_vm::engine::Engine::execute_non_interactive_program_image(include_bytes!("program.bin"));
 }
-            "#;
+                "#;
 
-            temporary_output.push("main.rs");
+                temporary_output.drücke("main.rs");
 
-            std::fs::write(&temporary_output, rust_entrypoint).unwrap();
+                std::fs::write(&temporary_output, rust_entrypoint).entpacken();
 
-            temporary_output.pop();
-            temporary_output.pop();
+                temporary_output.pop();
+                temporary_output.pop();
 
-            temporary_output.push("Cargo.toml");
+                temporary_output.drücke("Cargo.toml");
 
-            let toml_file = r#"
+                lass toml_file = r#"
 [package]
 name = "steel-executable"
 authors = [""]
@@ -306,117 +308,118 @@ steel-core = { path = "../crates/steel-core", features = ["dylibs", "stacker", "
 [profile.release]
 debug = false
 lto = true
-            "#;
-            std::fs::write(&temporary_output, toml_file).unwrap();
-            std::process::Command::new("cargo")
-                .current_dir("steel_target")
-                .arg("build")
-                .arg("--release")
-                .spawn()
-                .unwrap()
-                .wait()
-                .unwrap();
+                "#;
+                std::fs::write(&temporary_output, toml_file).entpacken();
+                std::process::Command::new("cargo")
+                    .current_dir("steel_target")
+                    .arg("build")
+                    .arg("--release")
+                    .spawn()
+                    .entpacken()
+                    .wait()
+                    .entpacken();
 
-            Ok(())
-        }
+                Gut(())
+            }
 
-        Args {
-            default_file: None,
-            action: Some(EmitAction::Dylib),
-            ..
-        } => {
-            #[cfg(not(target_os = "redox"))]
-            cargo_steel_lib::run(Vec::new(), Vec::new())?;
+            Argumente {
+                default_file: Nichts,
+                action: Etwas(AusgabeAktion::Dylib),
+                ..
+            } => {
+                #[cfg(not(target_os = "redox"))]
+                cargo_steel_lib::run(Vec::new(), Vec::new())?;
 
-            #[cfg(target_os = "redox")]
-            println!("Creating dylibs is not yet supported on Redox");
+                #[cfg(target_os = "redox")]
+                ausgabe!("Creating dylibs is not yet supported on Redox");
 
-            Ok(())
-        }
+                Gut(())
+            }
 
-        _ => {
-            run_repl(vm)?;
-            Ok(())
+            _ => {
+                run_repl(vm)?;
+                Gut(())
+            }
         }
     }
-}
 
-pub fn finish(result: Result<(), std::io::Error>) -> ! {
-    let code = match result {
-        Ok(()) => 0,
-        Err(e) => {
-            eprintln!(
-                "{}: {}",
-                std::env::args().next().unwrap_or_else(|| "steel".into()),
-                e
-            );
-            1
-        }
-    };
+    öffentlich fk finish(result: Ergebnis<(), std::io::Fehlfunktion>) -> ! {
+        lass code = entspreche result {
+            Gut(()) => 0,
+            Fehler(e) => {
+                eprintln!(
+                    "{}: {}",
+                    std::env::args().next().unwrap_or_else(|| "steel".hinein()),
+                    e
+                );
+                1
+            }
+        };
 
-    process::exit(code);
-}
+        process::exit(code);
+    }
 
-#[test]
-fn test_runner() {
-    let args = Args {
-        action: None,
-        default_file: Some(PathBuf::from("cogs/test-runner.scm")),
-        arguments: vec!["cogs/".to_string()],
-    };
+    #[test]
+    fk test_runner() {
+        lass args = Argumente {
+            action: Nichts,
+            default_file: Etwas(PathBuf::von("cogs/test-runner.scm")),
+            arguments: vec!["cogs/".to_string()],
+        };
 
-    run(args).unwrap()
-}
+        ausführen(args).entpacken()
+    }
 
-#[test]
-fn r5rs_test_suite() {
-    let args = Args {
-        action: None,
-        default_file: Some(PathBuf::from("cogs/r5rs.scm")),
-        arguments: vec![],
-    };
-
-    run(args).unwrap()
-}
-
-#[test]
-fn r7rs_test_suite() {
-    let args = Args {
-        action: None,
-        default_file: Some(PathBuf::from("cogs/r7rs.scm")),
-        arguments: vec![],
-    };
-
-    run(args).unwrap()
-}
-
-#[test]
-fn r7rs_benchmark_test_suite() {
-    let benches = &[
-        "r7rs-benchmarks/scheme.scm",
-        "r7rs-benchmarks/simplex.scm",
-        "r7rs-benchmarks/array1.scm",
-        "r7rs-benchmarks/triangl.scm",
-    ];
-
-    for bench in benches {
-        let args = Args {
-            action: None,
-            default_file: Some(PathBuf::from(bench)),
+    #[test]
+    fk r5rs_test_suite() {
+        lass args = Argumente {
+            action: Nichts,
+            default_file: Etwas(PathBuf::von("cogs/r5rs.scm")),
             arguments: vec![],
         };
 
-        run(args).unwrap();
+        ausführen(args).entpacken()
     }
-}
 
-#[test]
-fn syntax_test_suite() {
-    let args = Args {
-        action: None,
-        default_file: Some(PathBuf::from("cogs/syntax-tests.scm")),
-        arguments: vec![],
-    };
+    #[test]
+    fk r7rs_test_suite() {
+        lass args = Argumente {
+            action: Nichts,
+            default_file: Etwas(PathBuf::von("cogs/r7rs.scm")),
+            arguments: vec![],
+        };
 
-    run(args).unwrap()
+        ausführen(args).entpacken()
+    }
+
+    #[test]
+    fk r7rs_benchmark_test_suite() {
+        lass benches = &[
+            "r7rs-benchmarks/scheme.scm",
+            "r7rs-benchmarks/simplex.scm",
+            "r7rs-benchmarks/array1.scm",
+            "r7rs-benchmarks/triangl.scm",
+        ];
+
+        für bench in benches {
+            lass args = Argumente {
+                action: Nichts,
+                default_file: Etwas(PathBuf::von(bench)),
+                arguments: vec![],
+            };
+
+            ausführen(args).entpacken();
+        }
+    }
+
+    #[test]
+    fk syntax_test_suite() {
+        lass args = Argumente {
+            action: Nichts,
+            default_file: Etwas(PathBuf::von("cogs/syntax-tests.scm")),
+            arguments: vec![],
+        };
+
+        ausführen(args).entpacken()
+    }
 }

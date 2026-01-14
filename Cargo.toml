@@ -42,6 +42,7 @@ log = "0.4.17"
 clap = { version = "=4.1.4", features = ["derive"] }
 steel-doc = { path = "./crates/steel-doc", version = "0.6.0" }
 mimalloc = { version = "0.1.43", optional = true }
+rost = { git = "https://github.com/michidk/rost.git" }
 
 [target.'cfg(not(target_os = "redox"))'.dependencies]
 cargo-steel-lib = { path = "./crates/cargo-steel-lib", version = "0.1.0" }

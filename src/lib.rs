@@ -14,27 +14,27 @@ rost::rost! {
 
     benutze clap::{CommandFactory, Parser};
 
-    /// Steel Interpreter
+    /// Steel-Interpreter
     #[derive(Parser, Debug)]
     #[clap(author, version, about, long_about = None, trailing_var_arg = true, allow_hyphen_values = true, disable_help_flag = true, disable_help_subcommand = true)]
     öffentlich struktur Argumente {
-        /// What action to perform on this file, the absence of a subcommand indicates that the given file (if any)
-        /// will be run as the entrypoint
+        /// Welche Aktion soll mit dieser Datei durchgeführt werden? Das Fehlen eines Unterbefehls zeigt an, dass die angegebene Datei (falls vorhanden)
+        /// als Einstiegspunkt ausgeführt wird
         #[clap(subcommand)]
         action: Möglichkeit<AusgabeAktion>,
 
-        /// The existence of this argument indicates whether we want to run the repl, or interpret this file
+        /// Das Vorhandensein dieses Arguments zeigt an, ob wir den Repl ausführen oder diese Datei interpretieren wollen
         default_file: Möglichkeit<PathBuf>,
 
-        /// Arguments to the input file
+        /// Argumente für die Eingabedatei
         arguments: Vektor<Zeichenkette>,
     }
 
     #[derive(clap::Subcommand, Debug)]
     aufzählung AusgabeAktion {
-        /// Output a debug display of the fully transformed bytecode
+        /// Ausgabe einer Debug-Anzeige des vollständig transformierten Bytecodes
         Bytecode { default_file: Möglichkeit<PathBuf> },
-        /// Print a debug display of the fully expanded AST
+        /// Drucken einer Debug-Anzeige des vollständig erweiterten AST
         Ast {
             default_file: Möglichkeit<PathBuf>,
             #[arg(long)]
@@ -42,19 +42,19 @@ rost::rost! {
             #[arg(long)]
             pretty: Möglichkeit<bool>,
         },
-        /// Enter the repl with the given file loaded
+        /// Starten des Repl mit der geladenen Datei
         Interactive {
             default_file: Möglichkeit<PathBuf>,
             arguments: Vektor<Zeichenkette>,
         },
-        /// Tests the module - only tests modules which provide values
+        /// Testet das Modul - testet nur Module, die Werte bereitstellen
         Test { default_file: Möglichkeit<Zeichenkette> },
-        /// Generate the documentation for a file
+        /// Generiert die Dokumentation für eine Datei
         Doc { default_file: Möglichkeit<PathBuf> },
-        /// Experimental
+        /// Experimentell
         Compile { file: PathBuf },
 
-        /// Build a dylib from the root of this directory
+        /// Erstellen einer Dylib vom Root dieses Verzeichnisses
         Dylib,
     }
 

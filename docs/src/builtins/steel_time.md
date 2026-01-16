@@ -1,4 +1,4 @@
-# steel/time
+# stahl/time
 
 Contains direct wrappers around the Rust `std::time::Instant` and `std::time::Duration` modules. 
 For example, to measure the time something takes:

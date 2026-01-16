@@ -1,18 +1,18 @@
-use steel::steel_vm::engine::Engine;
-use steel::steel_vm::register_fn::RegisterFn;
+use stahl::stahl_vm::engine::Engine;
+use stahl::stahl_vm::register_fn::RegisterFn;
 
-use steel_derive::Steel;
+use stahl_derive::Stahl;
 
-// In order to register a type with Steel,
-// it must implement Clone, Debug, and Steel
-#[derive(Clone, Debug, Steel, PartialEq)]
+// In order to register a type with Stahl,
+// it must implement Clone, Debug, and Stahl
+#[derive(Clone, Debug, Stahl, PartialEq)]
 pub struct ExternalStruct {
     foo: usize,
     bar: String,
     baz: f64,
 }
 
-#[derive(Clone, Debug, Steel, PartialEq)]
+#[derive(Clone, Debug, Stahl, PartialEq)]
 pub enum ExternalEnum {
     Foo,
     Bar(String),
@@ -62,7 +62,7 @@ pub fn main() {
     vm.register_type::<ExternalStruct>("ExternalStruct?");
     vm.register_type::<ExternalEnum>("ExternalEnum");
 
-    // Structs in steel typically have a constructor that is the name of the struct
+    // Structs in stahl typically have a constructor that is the name of the struct
     vm.register_fn("ExternalStruct", ExternalStruct::new);
     vm.register_fn("ExternalEnum::Foo", || ExternalEnum::Foo);
     vm.register_fn("ExtenalEnum::Bar", ExternalEnum::Bar);
@@ -74,7 +74,7 @@ pub fn main() {
 
     // TODO -> this won't work because Custom is not implemented for option
     // since it has a specialized implementation
-    // vm.register_method_fn("is_some", SteelValOption::is_some);
+    // vm.register_method_fn("is_some", StahlValOption::is_some);
 
     // register_fn can be chained
     vm.register_fn("method-by-value", ExternalStruct::method_by_value)

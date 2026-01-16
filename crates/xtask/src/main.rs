@@ -24,7 +24,7 @@ fn generate_docs() -> Result<(), Box<dyn Error>> {
     let mut base = workspace_dir.clone();
 
     workspace_dir.push("crates");
-    workspace_dir.push("steel-doc");
+    workspace_dir.push("stahl-doc");
 
     std::process::Command::new("cargo")
         .arg("run")
@@ -44,7 +44,7 @@ fn generate_docs() -> Result<(), Box<dyn Error>> {
     std::fs::remove_dir_all(&workspace_dir)?;
 
     base.push("crates");
-    base.push("steel-doc");
+    base.push("stahl-doc");
     base.push("generated");
 
     println!("Moving generated docs into place...");
@@ -57,7 +57,7 @@ fn generate_docs() -> Result<(), Box<dyn Error>> {
 }
 
 fn install_everything() -> Result<(), Box<dyn Error>> {
-    println!("Installing `steel`...");
+    println!("Installing `stahl`...");
 
     let mut workspace_dir = workspace_dir();
 
@@ -75,12 +75,12 @@ fn install_everything() -> Result<(), Box<dyn Error>> {
             .wait()?;
     }
 
-    println!("Successfully installed `steel`");
+    println!("Successfully installed `stahl`");
 
-    println!("Installing `steel-language-server`");
+    println!("Installing `stahl-language-server`");
 
     workspace_dir.push("crates");
-    workspace_dir.push("steel-language-server");
+    workspace_dir.push("stahl-language-server");
 
     std::process::Command::new("cargo")
         .arg("install")
@@ -89,13 +89,13 @@ fn install_everything() -> Result<(), Box<dyn Error>> {
         .spawn()?
         .wait()?;
 
-    println!("Successfully installed `steel-language-server`");
+    println!("Successfully installed `stahl-language-server`");
 
     workspace_dir.pop();
 
-    workspace_dir.push("cargo-steel-lib");
+    workspace_dir.push("cargo-stahl-lib");
 
-    println!("Installing `cargo-steel-lib`");
+    println!("Installing `cargo-stahl-lib`");
 
     std::process::Command::new("cargo")
         .arg("install")
@@ -104,7 +104,7 @@ fn install_everything() -> Result<(), Box<dyn Error>> {
         .spawn()?
         .wait()?;
 
-    println!("Successfully installed `cargo-steel-lib`");
+    println!("Successfully installed `cargo-stahl-lib`");
 
     println!("Installing `forge`");
 
@@ -157,7 +157,7 @@ fn install_pgo() -> Result<(), Box<dyn Error>> {
         .spawn()?
         .wait()?;
 
-    let binary = format!("target/{}/release/steel", env!("TARGET_PLATFORM"));
+    let binary = format!("target/{}/release/stahl", env!("TARGET_PLATFORM"));
 
     let benches = &[
         "r7rs-benchmarks/scheme.scm",
@@ -185,7 +185,7 @@ fn install_pgo() -> Result<(), Box<dyn Error>> {
 
     let mut cargo_bin_location = which::which("cargo").expect("Unable to find cargo");
     cargo_bin_location.pop();
-    cargo_bin_location.push("steel");
+    cargo_bin_location.push("stahl");
     println!("Installing to: {:?}", cargo_bin_location);
     std::fs::copy(binary, cargo_bin_location).unwrap();
 

@@ -1,4 +1,4 @@
-# steel/filesystem
+# stahl/filesystem
 Filesystem functions, mostly just thin wrappers around the `std::fs` functions in
 the Rust std library.
 ### **canonicalize-path**

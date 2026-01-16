@@ -1,4 +1,4 @@
-# steel/base
+# stahl/base
 ### **\***
 Multiplies the given numbers.
 
@@ -1129,7 +1129,7 @@ Convert the given list into a hashset.
 ### **list-ref**
 Returns the value located at the given index. Will raise an error if you try to index out of bounds.
 
-Note: Runs in time proportional to the length of the list, however lists in Steel are implemented in such a fashion that the
+Note: Runs in time proportional to the length of the list, however lists in Stahl are implemented in such a fashion that the
 time complexity is O(n/64). Meaning, for small lists this can be constant.
 
 (list-ref lst index) -> list?
@@ -1732,7 +1732,7 @@ Converts a string into an int. Raises an error if the string cannot be converted
 > (string->int "not-an-int") ;; error
 ```
 ### **string->jsexpr**
-Deserializes a JSON string into a Steel value.
+Deserializes a JSON string into a Stahl value.
 
 (string->jsexpr json) -> any/c
 
@@ -2082,7 +2082,7 @@ of the string
 ### **utf8->string**
 Alias of `bytes->string/utf8`.
 ### **value->jsexpr-string**
-Serializes a Steel value into a string.
+Serializes a Stahl value into a string.
 
 (value->jsexpr-string any/c) -> string?
 
@@ -2304,7 +2304,7 @@ Checks if the given real number is zero.
 ### **spawn-thread!**
 ### **stdout**
 ### **stdout-simple-displayln**
-### **steel-home-location**
+### **stahl-home-location**
 ### **stream-car**
 ### **stream-cons**
 ### **stream-empty?**

@@ -1,4 +1,4 @@
-# Steel
+# Stahl
 
 <div align="center">
     <img width="150px" src="images/styled.png">
@@ -8,25 +8,25 @@
 
 Ein einbettbarer und erweiterbarer Scheme-Dialekt, geschrieben in Rust.
 
-![Aktionsstatus](https://github.com/mattwparas/steel/workflows/Build/badge.svg)
-![Aktionsstatus](https://github.com/mattwparas/steel/workflows/Docker%20CI/badge.svg)
-[![Abdeckungsstatus](https://coveralls.io/repos/github/mattwparas/steel/badge.svg?branch=master)](https://coveralls.io/github/mattwparas/steel?branch=master)
+![Aktionsstatus](https://github.com/TeglonLabs/Stahl/workflows/Build/badge.svg)
+![Aktionsstatus](https://github.com/TeglonLabs/Stahl/workflows/Docker%20CI/badge.svg)
+[![Abdeckungsstatus](https://coveralls.io/repos/github/TeglonLabs/Stahl/badge.svg?branch=master)](https://coveralls.io/github/TeglonLabs/Stahl?branch=master)
 [![Discord-Chat](https://img.shields.io/discord/1152443024715034675.svg?logo=discord&label=discord)](https://discord.gg/WwFRXdN6HU)
-[![Matrix-Chat](https://img.shields.io/matrix/steel:matrix.org?logo=element&label=matrix)](https://matrix.to/#/#steel:matrix.org)
+[![Matrix-Chat](https://img.shields.io/matrix/stahl:matrix.org?logo=element&label=matrix)](https://matrix.to/#/#stahl:matrix.org)
 
-<a href="https://mattwparas.github.io/steel-playground/dev">
+<a href="https://mattwparas.github.io/stahl-playground/dev">
     <b>Probieren Sie es im Playground</b>
 </a>
 ·
-<a href="https://mattwparas.github.io/steel/book">
-    <b>Das Steel-Buch lesen (WIP)</b>
+<a href="https://mattwparas.github.io/stahl/book">
+    <b>Das Stahl-Buch lesen (WIP)</b>
 </a>
 
 </div>
 
 ## Erste Schritte
 
-Dieses Github-Repository enthält einen CLI-Interpreter. Um ihn online auszuprobieren, besuchen Sie den [Steel Playground](https://mattwparas.github.io/steel-playground/dev). Um einen REPL mit den Crates lokal zu verwenden, stellen Sie sicher, dass Rust installiert ist.
+Dieses Github-Repository enthält einen CLI-Interpreter. Um ihn online auszuprobieren, besuchen Sie den [Stahl Playground](https://mattwparas.github.io/stahl-playground/dev). Um einen REPL mit den Crates lokal zu verwenden, stellen Sie sicher, dass Rust installiert ist.
 
 Klonen Sie dann das Repo und führen Sie folgenden Befehl aus:
 
@@ -50,18 +50,18 @@ cargo xtask install
 
 Dies installiert:
 
-- Den Steel-Interpreter, `steel`
-- Den Dylib-Installer, `cargo-steel-lib` (auch über den Interpreter verfügbar)
-- Den Steel Language Server
+- Den Stahl-Interpreter, `stahl`
+- Den Dylib-Installer, `cargo-stahl-lib` (auch über den Interpreter verfügbar)
+- Den Stahl Language Server
 - Die Standardbibliothek, zu finden im `cogs`-Verzeichnis
 
 ### Pakete
 
-Wenn Sie den Speicherort der installierten Pakete anpassen möchten, setzen Sie bitte die Umgebungsvariable `STEEL_HOME`. Steel geht derzeit vom Standard `$HOME/.steel` aus, wenn die Umgebungsvariable nicht gesetzt ist.
+Wenn Sie den Speicherort der installierten Pakete anpassen möchten, setzen Sie bitte die Umgebungsvariable `STAHL_HOME`. Stahl geht derzeit vom Standard `$HOME/.stahl` aus, wenn die Umgebungsvariable nicht gesetzt ist.
 
 ## Über
 
-`Steel` ist ein einbettbarer Scheme-Interpreter, der auch eine eigenständige CLI enthält. Inspiriert größtenteils von Racket, zielt die Sprache darauf ab, eine ergonomische Scheme-Variante zu sein, die hilfreich für die Einbettung in Anwendungen ist oder eigenständig mit leistungsstarken, in Rust implementierten Funktionen verwendet werden kann. Die Sprachimplementierung selbst enthält ein ziemlich mächtiges Makrosystem basierend auf dem `syntax-rules`-Stil und eine Bytecode-Virtual-Machine. Derzeit ist sie weitgehend konform mit R5RS, es fehlt nur die Unterstützung für `let-syntax`. Unterstützung für R7RS ist in Arbeit.
+`Stahl` ist ein einbettbarer Scheme-Interpreter, der auch eine eigenständige CLI enthält. Inspiriert größtenteils von Racket, zielt die Sprache darauf ab, eine ergonomische Scheme-Variante zu sein, die hilfreich für die Einbettung in Anwendungen ist oder eigenständig mit leistungsstarken, in Rust implementierten Funktionen verwendet werden kann. Die Sprachimplementierung selbst enthält ein ziemlich mächtiges Makrosystem basierend auf dem `syntax-rules`-Stil und eine Bytecode-Virtual-Machine. Derzeit ist sie weitgehend konform mit R5RS, es fehlt nur die Unterstützung für `let-syntax`. Unterstützung für R7RS ist in Arbeit.
 
 > **Warnung**
 > Die API ist relativ instabil ohne Garantien und kann sich jederzeit vor 1.0 ändern. Es gibt zweifellos Fehler, und alle größeren Fehlerberichte werden schnell bearbeitet. Davon abgesehen benutze ich es selbst als täglichen Treiber für viele Skriptaufgaben.
@@ -81,7 +81,7 @@ Wenn Sie den Speicherort der installierten Pakete anpassen möchten, setzen Sie 
 
 ## Verträge
 
-Inspiriert von Rackets Verträgen höherer Ordnung, implementiert* `Steel` Verträge höherer Ordnung, um Design by Contract zu ermöglichen, vereinfacht durch ein `define/contract`-Makro für bessere Ergonomie. Racket nutzt ein Konzept namens _blame_, das versucht, die verletzende Partei zu identifizieren - `Steel` hat noch kein voll ausgearbeitetes Blame-System, aber daran wird gearbeitet. Hier sind einige Beispiele:
+Inspiriert von Rackets Verträgen höherer Ordnung, implementiert* `Stahl` Verträge höherer Ordnung, um Design by Contract zu ermöglichen, vereinfacht durch ein `define/contract`-Makro für bessere Ergonomie. Racket nutzt ein Konzept namens _blame_, das versucht, die verletzende Partei zu identifizieren - `Stahl` hat noch kein voll ausgearbeitetes Blame-System, aber daran wird gearbeitet. Hier sind einige Beispiele:
 
 ```scheme
 ;; Einfache flache Verträge
@@ -170,7 +170,7 @@ Vielleicht ein nuancierterer Fall:
 
 ## Transducers
 
-Inspiriert von Clojures Transducern hat `Steel` ein ähnliches Objekt, das irgendwo auf halbem Weg zwischen Transducern und Iteratoren liegt. Betrachten Sie folgendes:
+Inspiriert von Clojures Transducern hat `Stahl` ein ähnliches Objekt, das irgendwo auf halbem Weg zwischen Transducern und Iteratoren liegt. Betrachten Sie folgendes:
 
 ```scheme
 
@@ -221,7 +221,7 @@ Compose kombiniert einfach die Iterator-Funktionen und lässt uns zwischenzeitli
 
 ## Module
 
-Um eine wachsende Codebasis zu unterstützen, hat Steel Modulunterstützung für Projekte, die sich über mehrere Dateien erstrecken. Steel-Dateien können Werte `provide`n (bereitstellen, mit angehängten Verträgen) und Module aus anderen Dateien `require`n (anfordern):
+Um eine wachsende Codebasis zu unterstützen, hat Stahl Modulunterstützung für Projekte, die sich über mehrere Dateien erstrecken. Stahl-Dateien können Werte `provide`n (bereitstellen, mit angehängten Verträgen) und Module aus anderen Dateien `require`n (anfordern):
 
 ```scheme
 ;; main.scm
@@ -260,19 +260,19 @@ Ein paar Anmerkungen zu Modulen:
 
 Vorläufige Benchmarks zeigen folgendes auf meinem Rechner:
 
-| Benchmark | Steel    | Python   |
+| Benchmark | Stahl    | Python   |
 | --------- | -------- | -------- |
 | (fib 28)  | 63.383ms | 65.10 ms |
 | (ack 3 3) | 0.303 ms | 0.195 ms |
 
 ## Beispiele für das Einbetten von Rust-Werten in die virtuelle Maschine
 
-Rust-Werte, -Typen und -Funktionen können einfach in Steel eingebettet werden. Mit dem `register_fn`-Aufruf können Sie Funktionen einfach einbetten:
+Rust-Werte, -Typen und -Funktionen können einfach in Stahl eingebettet werden. Mit dem `register_fn`-Aufruf können Sie Funktionen einfach einbetten:
 
 ```rust
 rost::rost! {
-    benutze steel_vm::engine::Engine;
-    benutze steel_vm::register_fn::RegisterFn;
+    benutze stahl_vm::engine::Engine;
+    benutze stahl_vm::register_fn::RegisterFn;
 
     fk external_function(arg1: usize, arg2: usize) -> usize {
         arg1 + arg2
@@ -294,11 +294,11 @@ rost::rost! {
         lass änd vm = Engine::new();
 
         // Hier können wir Funktionen registrieren
-        // Jede Funktion kann Parameter akzeptieren, die `FromSteelVal` implementieren und
-        // Werte zurückgeben, die `IntoSteelVal` implementieren
+        // Jede Funktion kann Parameter akzeptieren, die `FromStahlVal` implementieren und
+        // Werte zurückgeben, die `IntoStahlVal` implementieren
         vm.register_fn("external-function", external_function);
 
-        // Siehe die Dokumentation für weitere Informationen über `FromSteelVal` und `IntoSteelVal`
+        // Siehe die Dokumentation für weitere Informationen über `FromStahlVal` und `IntoStahlVal`
         // aber wir können sehen, dass sogar Funktionen, die Option<T> oder Result<T,E> akzeptieren/zurückgeben
         // registriert werden können
         vm.register_fn("option-function", option_function);
@@ -335,14 +335,14 @@ Wir können auch Strukturen selbst einbetten:
 
 ```rust
 rost::rost! {
-    benutze steel_vm::engine::Engine;
-    benutze steel_vm::register_fn::RegisterFn;
+    benutze stahl_vm::engine::Engine;
+    benutze stahl_vm::register_fn::RegisterFn;
 
-    benutze steel_derive::Steel;
+    benutze stahl_derive::Stahl;
 
-    // Um einen Typ mit Steel zu registrieren,
-    // muss er Clone, Debug und Steel implementieren
-    #[derive(Clone, Debug, Steel, PartialEq)]
+    // Um einen Typ mit Stahl zu registrieren,
+    // muss er Clone, Debug und Stahl implementieren
+    #[derive(Clone, Debug, Stahl, PartialEq)]
     öffentlich struktur ExternalStruct {
         foo: usize,
         bar: Zeichenkette,
@@ -376,7 +376,7 @@ rost::rost! {
         // Das Registrieren eines Typs gibt Zugriff auf ein Prädikat für den Typ
         vm.register_type::<ExternalStruct>("ExternalStruct?");
 
-        // Strukturen in Steel haben typischerweise einen Konstruktor, der der Name der Struktur ist
+        // Strukturen in Stahl haben typischerweise einen Konstruktor, der der Name der Struktur ist
         vm.register_fn("ExternalStruct", ExternalStruct::new);
 
         // register_fn kann verkettet werden

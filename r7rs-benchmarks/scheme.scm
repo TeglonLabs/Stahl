@@ -11,7 +11,7 @@
 ;         (scheme write)
 ;         (scheme time))
 
-; (require "steel/mutable-vectors")
+; (require "stahl/mutable-vectors")
 
 (define member
   (lambda (x los)
@@ -1089,8 +1089,8 @@
                            "twentytwo"
                            "two")))
 
-(require "steel/time/time.scm"
-         (for-syntax "steel/time/time.scm"))
+(require "stahl/time/time.scm"
+         (for-syntax "stahl/time/time.scm"))
 
 (define (run)
 

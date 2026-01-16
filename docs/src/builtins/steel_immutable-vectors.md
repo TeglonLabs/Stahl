@@ -1,4 +1,4 @@
-# steel/immutable-vectors
+# stahl/immutable-vectors
 ### **immutable-vector-push**
 Pushes a value to the back of the vector, returning a new vector.
 ### **immutable-vector**

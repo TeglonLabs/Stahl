@@ -1,12 +1,12 @@
-# Making a Steel Module in Rust
+# Making a Stahl Module in Rust
 
-Sometimes you may want to create a Steel module by calling Rust. This can be
+Sometimes you may want to create a Stahl module by calling Rust. This can be
 useful to:
 
 - Optimize a performance critical codepath with Rust.
 - Take advantage of Rust's rich ecosystem.
 
-Whatever the case, Steel provides facilities to create reusable modules based on
+Whatever the case, Stahl provides facilities to create reusable modules based on
 Rust code. This process involves compiling Rust into a `dylib`.
 
 ## Guide
@@ -16,15 +16,15 @@ are roughly 3 steps:
 
 1. Create a new Rust library of type "cdylib".
 1. Define a module and register types and functions to it.
-1. Build the Steel crate and install it to `$STEEL_HOME/native`.
-1. Use the library from Steel with `#%require-dylib`.
+1. Build the Stahl crate and install it to `$STAHL_HOME/native`.
+1. Use the library from Stahl with `#%require-dylib`.
 
 ### Creating a cdylib library
 
 To start, create a new library using `cargo`:
 
 ```
-$ cargo new --lib steel-sys-info
+$ cargo new --lib stahl-sys-info
 ```
 
 This should create a directory structure as follows:
@@ -35,39 +35,39 @@ This should create a directory structure as follows:
 │   └── lib.rs
 ```
 
-We'll want to make this a `cdylib` library for Steel, so we'll perform the following adjustments in `Cargo.toml`:
+We'll want to make this a `cdylib` library for Stahl, so we'll perform the following adjustments in `Cargo.toml`:
 
 1. Set the `crate-type` to `"cdylib"`.
-1. Include `steel-core` with the `dylibs` feature as a dependency.
-1. Include `abi_stable` as a dependency. This is required by some `steel-core`
+1. Include `stahl-core` with the `dylibs` feature as a dependency.
+1. Include `abi_stable` as a dependency. This is required by some `stahl-core`
    macros.
 
 ```toml
 [package]
-name = "steel-sys-info"
+name = "stahl-sys-info"
 version.workspace = true
 edition = "2021"
 
 [lib]
-name = "steel_sys_info"
+name = "stahl_sys_info"
 crate-type = ["cdylib"]
 
 [dependencies]
-# I'm running this example based on the `steel-sys-info` library found in the steel repo. If you're
-# running this on your own, use whichever steel version you'd like to target and pin to that.
-steel-core = { workspace = true, features = ["dylibs"] }
+# I'm running this example based on the `stahl-sys-info` library found in the stahl repo. If you're
+# running this on your own, use whichever stahl version you'd like to target and pin to that.
+stahl-core = { workspace = true, features = ["dylibs"] }
 abi_stable = "0.11.1"
 sys-info = "0.9.1"
 ```
 
 This means that when we run `cargo build` we'll produce a shared library (`.so`
-file). The shared library can be loaded into other programs, Steel in our case.
+file). The shared library can be loaded into other programs, Stahl in our case.
 
 ## Creating a module
 
 For the purposes of this example, we'll create a module that wraps the `MemInfo`
 struct, and expose the information there. Since we'll be implementing traits
-that are defined inside the `steel` crate, we'll need to create a struct to wrap
+that are defined inside the `stahl` crate, we'll need to create a struct to wrap
 the `sys_info::MemInfo` struct:
 
 ```rust,noplaypen
@@ -106,15 +106,15 @@ impl MemoryInfo {
 }
 ```
 
-Now that we've done that, we can expose this to steel by implementing the
+Now that we've done that, we can expose this to stahl by implementing the
 `Custom` type for the struct, and declaring an `FFIModule`:
 
 ```rust,noplaypen
 // Using ABI Stable types is very important
-use steel::{
+use stahl::{
     declare_module,
     rvals::Custom,
-    steel_vm::ffi::{FFIModule, RegisterFFIFn},
+    stahl_vm::ffi::{FFIModule, RegisterFFIFn},
 };
 
 impl Custom for MemoryInfo {}
@@ -122,7 +122,7 @@ impl Custom for MemoryInfo {}
 declare_module!(create_module);
 
 fn create_module() -> FFIModule {
-    let mut module = FFIModule::new("steel/sys-info");
+    let mut module = FFIModule::new("stahl/sys-info");
 
     module.register_fn("mem-info", || MemoryInfo {
         info: sys_info::mem_info().unwrap(),
@@ -143,23 +143,23 @@ fn create_module() -> FFIModule {
 
 The `register_fn` API will perform all of the necessary coercions necessary to
 make this as safe as possible. At the end of the day, this is FFI and we are
-loading shared libraries, so there is some unsafe Rust code, however steel uses
+loading shared libraries, so there is some unsafe Rust code, however stahl uses
 the underlying `abi_stable` library in order to make interactions with the
 shared library as safe as possible.
 
 
 ### Installing the library
 
-To install the dylib in a location where the `steel` interpreter will find it,
+To install the dylib in a location where the `stahl` interpreter will find it,
 from the root of the library just run:
 
 ```
-$ cargo steel-lib
+$ cargo stahl-lib
 ```
 
-This will build the crate, and copy the resulting dylib to `$STEEL_HOME/native`.
+This will build the crate, and copy the resulting dylib to `$STAHL_HOME/native`.
 
-### Using the library from Steel
+### Using the library from Stahl
 
 To load the library, use the syntax `#%require-dylib` - This operates similary
 to a standard `require`, in that all of the modifiers you're used to using work,
@@ -169,7 +169,7 @@ default, the library will be named the `[lib]` name used in the toml, prefixed
 with `lib`.
 
 ```scheme
-(#%require-dylib "libsteel_sys_info"
+(#%require-dylib "libstahl_sys_info"
                  (only-in mem-info
                           MemoryInfo-total
                           MemoryInfo-avail

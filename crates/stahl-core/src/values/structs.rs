@@ -1,0 +1,1317 @@
+#![allow(unused)]
+#![allow(clippy::type_complexity)]
+
+use crate::stahl_vm::primitives::{stahl_unbox_mutable, unbox_mutable};
+use crate::values::HashMap;
+use once_cell::sync::Lazy;
+use parking_lot::RwLock;
+use smallvec::SmallVec;
+
+use crate::compiler::map::SymbolMap;
+use crate::parser::interner::InternedString;
+use crate::rerrs::ErrorKind;
+use crate::rvals::{
+    from_serializable_value, into_serializable_value, Custom, HeapSerializer, SerializableStahlVal,
+    SerializedHeapRef, StahlHashMap,
+};
+use crate::rvals::{FromStahlVal, IntoStahlVal};
+use crate::stahl_vm::register_fn::RegisterFn;
+use crate::throw;
+use crate::{
+    gc::Gc,
+    rvals::{AsRefStahlVal, SRef, StahlString},
+};
+use crate::{
+    rvals::{Result, StahlVal},
+    StahlErr,
+};
+use crate::{stahl_vm::builtin::BuiltInModule, stop};
+use std::collections::VecDeque;
+use std::ops::Deref;
+use std::sync::Arc;
+use std::{
+    cell::{Ref, RefCell},
+    rc::Rc,
+};
+
+use super::closed::Heap;
+use super::functions::BoxedDynFunction;
+use super::lists::List;
+use super::recycler::Recycle;
+
+enum StringOrMagicNumber {
+    String(Rc<String>),
+    Magic(usize),
+}
+
+// #[derive(Debug)]
+pub struct VTableEntry {
+    pub(crate) name: InternedString,
+    pub(crate) properties: Gc<HashMap<StahlVal, StahlVal>>,
+    pub(crate) proc: Option<usize>,
+    pub(crate) transparent: bool,
+    pub(crate) mutable: bool,
+}
+
+pub(crate) struct SendableVTableEntry {
+    pub(crate) name: InternedString,
+    pub(crate) properties: Vec<(SerializableStahlVal, SerializableStahlVal)>,
+    pub(crate) proc: Option<usize>,
+    pub(crate) transparent: bool,
+    pub(crate) mutable: bool,
+}
+
+impl VTableEntry {
+    pub fn new(name: InternedString, proc: Option<usize>) -> Self {
+        Self {
+            name,
+            proc,
+            properties: DEFAULT_PROPERTIES.with(|x| x.clone()),
+            transparent: false,
+            mutable: false,
+        }
+    }
+}
+
+// If they're built in, we want to package the values alongside the
+#[derive(Debug, Clone, Hash)]
+pub enum Properties {
+    BuiltIn,
+    Local(Gc<HashMap<StahlVal, StahlVal>>),
+}
+
+impl Properties {
+    pub fn ptr_eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Local(l), Self::Local(r)) => Gc::ptr_eq(l, r),
+            (Self::BuiltIn, Self::BuiltIn) => true,
+            _ => false,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
+// Wrap the usize, store this and this only. We use this as an index into the VTable.
+pub struct StructTypeDescriptor(usize);
+
+impl Custom for StructTypeDescriptor {
+    fn into_serializable_stahlval(&mut self) -> Option<SerializableStahlVal> {
+        Some(SerializableStahlVal::Custom(Box::new(self.clone())))
+    }
+}
+
+impl StructTypeDescriptor {
+    #[cfg(not(feature = "sync"))]
+    fn name(&self) -> InternedString {
+        VTABLE.with(|x| x.borrow().entries[self.0].name)
+    }
+
+    #[cfg(feature = "sync")]
+    fn name(&self) -> InternedString {
+        STATIC_VTABLE.read().entries[self.0].name
+    }
+
+    // TODO: Use inline reference to avoid reference count when getting the fields
+    #[cfg(not(feature = "sync"))]
+    fn fields(&self) -> StahlVal {
+        FIELDS_KEY.with(|key| VTABLE.with(|x| x.borrow().entries[self.0].properties[&key].clone()))
+    }
+
+    #[cfg(feature = "sync")]
+    fn fields(&self) -> StahlVal {
+        STATIC_VTABLE.read().entries[self.0].properties[&STATIC_FIELDS_KEY].clone()
+    }
+}
+
+pub struct SerializableUserDefinedStruct {
+    pub(crate) fields: Vec<SerializableStahlVal>,
+
+    pub(crate) type_descriptor: StructTypeDescriptor,
+}
+
+#[derive(Clone, Debug, Hash)]
+pub struct UserDefinedStruct {
+    // pub(crate) fields: Recycle<Vec<StahlVal>>,
+    pub(crate) fields: Recycle<SmallVec<[StahlVal; 4]>>,
+    // pub(crate) fields: SmallVec<[StahlVal; 4]>,
+
+    // Type Descriptor. Use this as an index into the VTable to find anything that we need.
+    pub(crate) type_descriptor: StructTypeDescriptor,
+}
+
+impl UserDefinedStruct {
+    pub fn name(&self) -> InternedString {
+        self.type_descriptor.name()
+    }
+
+    pub fn is_transparent(&self) -> bool {
+        self.get(&TRANSPARENT_KEY.with(|x| x.clone()))
+            .and_then(|x| x.as_bool())
+            .unwrap_or_default()
+    }
+
+    pub fn get_index(&self, index: usize) -> Option<&StahlVal> {
+        self.fields.get(index)
+    }
+
+    pub fn get_mut_index(&self, index: usize) -> Option<StahlVal> {
+        self.fields
+            .get(index)
+            .cloned()
+            .map(|x| stahl_unbox_mutable(&[x]).unwrap())
+    }
+
+    // This only works if the underlying value is a box
+    pub fn set_index(&self, index: usize, value: StahlVal) {
+        let inner = self.fields.get(index);
+
+        if let Some(StahlVal::HeapAllocated(s)) = inner {
+            s.set_and_return(value);
+        }
+    }
+}
+
+// TODO: This could blow the stack for big trees...
+impl PartialEq for UserDefinedStruct {
+    fn eq(&self, other: &Self) -> bool {
+        self.type_descriptor == other.type_descriptor && self.fields.deref() == other.fields.deref()
+    }
+}
+
+impl std::fmt::Display for UserDefinedStruct {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self
+            .get(&StahlVal::SymbolV(StahlString::from("#:transparent")))
+            .is_some()
+        {
+            write!(f, "({}", self.type_descriptor.name())?;
+            // for i in 0..self.len - 1 {
+            //     write!(f, " {}", self.fields[i])?;
+            // }
+
+            for i in self.fields.iter() {
+                write!(f, " {}", i)?;
+            }
+
+            write!(f, ")")
+        } else {
+            write!(f, "({})", self.name())
+        }
+    }
+}
+
+impl UserDefinedStruct {
+    fn new(type_descriptor: StructTypeDescriptor, raw_fields: &[StahlVal]) -> Self {
+        // let mut fields: Recycle<Vec<_>> = Recycle::new();
+        let mut fields: Recycle<SmallVec<[StahlVal; 4]>> = Recycle::new();
+        // fields.extend_from_slice(raw_fields);
+        fields.extend(raw_fields.into_iter().cloned());
+
+        // let fields = raw_fields.into_iter().cloned().collect();
+
+        Self {
+            fields,
+            type_descriptor,
+        }
+    }
+
+    #[cfg(not(feature = "sync"))]
+    pub(crate) fn get(&self, val: &StahlVal) -> Option<StahlVal> {
+        VTABLE.with(|x| {
+            x.borrow().entries[self.type_descriptor.0]
+                .properties
+                .get(val)
+                .cloned()
+        })
+    }
+
+    #[cfg(feature = "sync")]
+    pub(crate) fn get(&self, val: &StahlVal) -> Option<StahlVal> {
+        STATIC_VTABLE.read().entries[self.type_descriptor.0]
+            .properties
+            .get(val)
+            .cloned()
+    }
+
+    #[inline(always)]
+    fn new_ok<T: IntoStahlVal>(value: T) -> Result<StahlVal> {
+        if cfg!(feature = "sync") {
+            UserDefinedStruct::constructor_thunk(1, *STATIC_OK_DESCRIPTOR)(
+                &[value.into_stahlval()?],
+            )
+        } else {
+            OK_CONSTRUCTOR.with(|x| x(&[value.into_stahlval()?]))
+        }
+    }
+
+    #[inline(always)]
+    fn new_err<T: IntoStahlVal>(value: T) -> Result<StahlVal> {
+        if cfg!(feature = "sync") {
+            UserDefinedStruct::constructor_thunk(1, *STATIC_ERR_DESCRIPTOR)(&[
+                value.into_stahlval()?
+            ])
+        } else {
+            ERR_CONSTRUCTOR.with(|x| x(&[value.into_stahlval()?]))
+        }
+    }
+
+    // TODO: This doesn't particularly play nice with dynamic libraries. Should probably just assign some IDs
+    // to these structs and use them that way
+    #[inline(always)]
+    fn is_ok(&self) -> bool {
+        self.type_descriptor.name() == *OK_RESULT_LABEL
+    }
+
+    #[inline(always)]
+    fn is_err(&self) -> bool {
+        self.type_descriptor.name() == *ERR_RESULT_LABEL
+    }
+
+    #[cfg(not(feature = "sync"))]
+    pub(crate) fn maybe_proc(&self) -> Option<&StahlVal> {
+        VTABLE.with(|x| {
+            x.borrow().entries[self.type_descriptor.0]
+                .proc
+                .as_ref()
+                .map(|s| &self.fields[*s])
+        })
+    }
+
+    #[cfg(feature = "sync")]
+    pub(crate) fn maybe_proc(&self) -> Option<&StahlVal> {
+        STATIC_VTABLE.read().entries[self.type_descriptor.0]
+            .proc
+            .as_ref()
+            .map(|s| &self.fields[*s])
+    }
+
+    fn new_with_options(
+        properties: Properties,
+        type_descriptor: StructTypeDescriptor,
+        rest: &[StahlVal],
+    ) -> Self {
+        // let mut fields: Recycle<Vec<_>> = Recycle::new_with_capacity(rest.len());
+        // fields.extend_from_slice(rest);
+
+        let mut fields: Recycle<SmallVec<[_; 4]>> = Recycle::new_with_capacity(rest.len());
+        fields.extend(rest.into_iter().cloned());
+
+        // let fields = rest.into_iter().cloned().collect();
+
+        Self {
+            fields,
+            type_descriptor,
+        }
+    }
+
+    fn constructor_thunk(
+        len: usize,
+        descriptor: StructTypeDescriptor,
+    ) -> impl Fn(&[StahlVal]) -> Result<StahlVal> {
+        move |args: &[StahlVal]| -> Result<StahlVal> {
+            if args.len() != len {
+                let error_message = format!(
+                    "{} expected {} arguments, found {}",
+                    descriptor.name(),
+                    len,
+                    args.len(),
+                );
+                stop!(ArityMismatch => error_message);
+            }
+
+            let new_struct =
+                UserDefinedStruct::new_with_options(Properties::BuiltIn, descriptor, args);
+
+            Ok(StahlVal::CustomStruct(Gc::new(new_struct)))
+        }
+    }
+
+    fn constructor_with_options(len: usize, descriptor: StructTypeDescriptor) -> StahlVal {
+        let f = move |args: &[StahlVal]| -> Result<StahlVal> {
+            if args.len() != len {
+                let error_message = format!(
+                    "{} expected {} arguments, found {}",
+                    descriptor.name().clone(),
+                    args.len(),
+                    len
+                );
+                stop!(ArityMismatch => error_message);
+            }
+
+            let new_struct =
+                UserDefinedStruct::new_with_options(Properties::BuiltIn, descriptor, args);
+
+            Ok(StahlVal::CustomStruct(Gc::new(new_struct)))
+        };
+
+        StahlVal::BoxedFunction(Gc::new(BoxedDynFunction::new_owned(
+            Arc::new(f),
+            Some(descriptor.name().resolve().to_string().into()),
+            Some(len),
+        )))
+    }
+
+    fn constructor(
+        name: InternedString,
+        len: usize,
+        type_descriptor: StructTypeDescriptor,
+    ) -> StahlVal {
+        let f = move |args: &[StahlVal]| -> Result<StahlVal> {
+            if args.len() != len {
+                let error_message = format!(
+                    "{} expected {} arguments, found {}",
+                    name.clone(),
+                    args.len(),
+                    len
+                );
+                stop!(ArityMismatch => error_message);
+            }
+
+            // Definitely use interned symbols for these. Otherwise we're going to be doing A LOT of
+            // arc cloning, and we don't want that.
+            let new_struct = UserDefinedStruct::new(type_descriptor, args);
+
+            Ok(StahlVal::CustomStruct(Gc::new(new_struct)))
+        };
+
+        StahlVal::BoxedFunction(Gc::new(BoxedDynFunction::new_owned(
+            Arc::new(f),
+            Some(name.resolve().to_string().into()),
+            Some(len),
+        )))
+    }
+
+    fn predicate(descriptor: StructTypeDescriptor) -> StahlVal {
+        let f = move |args: &[StahlVal]| -> Result<StahlVal> {
+            if args.len() != 1 {
+                let error_message = format!(
+                    "{}? expected one argument, found {}",
+                    descriptor.name(),
+                    args.len()
+                );
+                stop!(ArityMismatch => error_message);
+            }
+            Ok(StahlVal::BoolV(match &args[0] {
+                StahlVal::CustomStruct(my_struct) if my_struct.type_descriptor == descriptor => {
+                    true
+                }
+                _ => false,
+            }))
+        };
+
+        StahlVal::BoxedFunction(Gc::new(BoxedDynFunction::new_owned(
+            Arc::new(f),
+            Some(descriptor.name().resolve().to_string().into()),
+            Some(1),
+        )))
+    }
+
+    fn getter_prototype(descriptor: StructTypeDescriptor) -> StahlVal {
+        let f = move |args: &[StahlVal]| -> Result<StahlVal> {
+            if args.len() != 2 {
+                stop!(ArityMismatch => format!("{} expected two arguments", descriptor.name()));
+            }
+
+            let stahl_struct = &args[0];
+            let idx = &args[1];
+
+            match (stahl_struct, idx) {
+                (StahlVal::CustomStruct(s), StahlVal::IntV(idx)) => {
+                    if s.type_descriptor != descriptor {
+                        stop!(TypeMismatch => format!("Struct getter expected {}, found {:?}, {:?}", descriptor.name(), &s, &stahl_struct));
+                    }
+
+                    if *idx < 0 {
+                        stop!(Generic => "struct-ref expected a non negative index");
+                    }
+
+                    s.fields
+                        .get(*idx as usize)
+                        .cloned()
+                        .ok_or_else(throw!(Generic => "struct-ref: index out of bounds"))
+                }
+                _ => {
+                    let error_message = format!(
+                        "{} expected a struct and an int, found: {} and {}",
+                        descriptor.name(),
+                        stahl_struct,
+                        idx
+                    );
+                    stop!(TypeMismatch => error_message)
+                }
+            }
+        };
+
+        StahlVal::BoxedFunction(Gc::new(BoxedDynFunction::new_owned(
+            Arc::new(f),
+            Some(descriptor.name().resolve().to_string().into()),
+            Some(2),
+        )))
+    }
+
+    fn getter_prototype_index(descriptor: StructTypeDescriptor, index: usize) -> StahlVal {
+        let f = move |args: &[StahlVal]| -> Result<StahlVal> {
+            if args.len() != 1 {
+                stop!(ArityMismatch => "struct-ref expected one argument");
+            }
+
+            let stahl_struct = &args[0].clone();
+
+            match &stahl_struct {
+                StahlVal::CustomStruct(s) => {
+                    if s.type_descriptor != descriptor {
+                        stop!(TypeMismatch => format!("Struct getter expected {}, found {:?}, {:?}", descriptor.name(), &s, &stahl_struct));
+                    }
+
+                    s.fields
+                        .get(index)
+                        .cloned()
+                        .ok_or_else(throw!(Generic => "struct-ref: index out of bounds"))
+                }
+                _ => {
+                    let error_message = format!(
+                        "{} expected a struct and an int, found: {} and {}",
+                        descriptor.name(),
+                        stahl_struct,
+                        index
+                    );
+                    stop!(TypeMismatch => error_message)
+                }
+            }
+        };
+
+        StahlVal::BoxedFunction(Gc::new(BoxedDynFunction::new_owned(
+            Arc::new(f),
+            Some(descriptor.name().resolve().to_string().into()),
+            Some(1),
+        )))
+    }
+}
+
+// Update the given struct in place, without having to allocate a new one
+// This in practice should yield some nice performance
+pub fn struct_update_primitive(args: &mut [StahlVal]) -> Result<StahlVal> {
+    if let Some((StahlVal::CustomStruct(s), fields)) = args.split_first_mut() {
+        let mut fields = fields.iter_mut();
+
+        let struct_fields = s.type_descriptor.fields();
+
+        let struct_fields_list = struct_fields
+            .list()
+            .ok_or_else(throw!(TypeMismatch => "struct fields are not a list!"))?;
+
+        // Fast path, we have less than 5 pairs of keys to change. Past that
+        // we'll have to use some heap allocations
+        let mut fields_to_update = smallvec::SmallVec::<[(usize, &mut StahlVal); 5]>::new();
+
+        match Gc::get_mut(s) {
+            Some(s) => {
+                populate_fields_offsets(fields, struct_fields_list, &mut fields_to_update)?;
+
+                for (idx, value) in fields_to_update {
+                    std::mem::swap(&mut s.fields[idx], value);
+                }
+
+                Ok(std::mem::replace(&mut args[0], StahlVal::Void))
+            }
+
+            None => {
+                let mut s = s.unwrap();
+                populate_fields_offsets(fields, struct_fields_list, &mut fields_to_update)?;
+                for (idx, value) in fields_to_update {
+                    std::mem::swap(&mut s.fields[idx], value);
+                }
+
+                Ok(StahlVal::CustomStruct(Gc::new(s)))
+            }
+        }
+    } else {
+        stop!(TypeMismatch => "struct-copy expects a struct in the first position, found: {:?}", args);
+    }
+}
+
+fn populate_fields_offsets<'a>(
+    mut fields: std::slice::IterMut<'a, StahlVal>,
+    struct_fields_list: &List<StahlVal>,
+    fields_to_update: &mut smallvec::SmallVec<[(usize, &'a mut StahlVal); 5]>,
+) -> Result<()> {
+    Ok(loop {
+        match (fields.next(), fields.next()) {
+            (Some(key), Some(value)) => {
+                // check all of the struct offsets first, otherwise roll back the applied changes to the struct?
+                let struct_offset = struct_fields_list
+                    .iter()
+                    .enumerate()
+                    .find(|(index, element)| *element == key)
+                    .ok_or_else(throw!(Generic => "field not found on struct: {}", key))?;
+
+                fields_to_update.push((struct_offset.0, value));
+            }
+            (None, None) => break,
+            _ => {
+                stop!(ArityMismatch => "struct-update must have a value for every key!");
+            }
+        }
+    })
+}
+
+pub fn make_struct_type(args: &[StahlVal]) -> Result<StahlVal> {
+    if args.len() != 2 {
+        stop!(ArityMismatch => "make-struct-type expects 2 args, found: {}", args.len())
+    }
+
+    // Convert the string into an Arc'd string - this now makes the generated functions
+    // thread safe.
+    let StahlVal::SymbolV(name) = &args[0] else {
+        stop!(TypeMismatch => format!("make-struct-type expected a symbol for the name, found: {}", &args[0]));
+    };
+
+    let StahlVal::IntV(field_count) = &args[1] else {
+        stop!(TypeMismatch => format!("make-struct-type expected an integer for the field count, found: {}", &args[0]));
+    };
+
+    let (
+        struct_type_descriptor,
+        struct_constructor,
+        struct_predicate,
+        getter_prototype,
+        getter_prototypes,
+    ) = make_struct_type_inner(name.as_str(), *field_count as usize);
+
+    Ok(StahlVal::ListV(
+        vec![
+            // Convert this into a descriptor before we're done
+            struct_type_descriptor.into_stahlval().unwrap(),
+            struct_constructor,
+            struct_predicate,
+            getter_prototype,
+            getter_prototypes,
+            // struct_type_descriptor,
+        ]
+        .into(),
+    ))
+}
+
+pub fn make_struct_singleton(name: &str) -> (StahlVal, StructTypeDescriptor) {
+    let (descriptor, _, _, _, _) = make_struct_type_inner(name, 0);
+
+    let instance = UserDefinedStruct::new(descriptor, &[]);
+
+    (StahlVal::CustomStruct(Gc::new(instance)), descriptor)
+}
+
+fn make_struct_type_inner(
+    name: &str,
+    field_count: usize,
+) -> (StructTypeDescriptor, StahlVal, StahlVal, StahlVal, StahlVal) {
+    let name = InternedString::from(name);
+
+    // Make a slot in the VTable for this struct
+    let struct_type_descriptor = VTable::new_entry(name, None);
+
+    // Build out the constructor and the predicate
+    let struct_constructor =
+        UserDefinedStruct::constructor(name, field_count, struct_type_descriptor);
+    let struct_predicate = UserDefinedStruct::predicate(struct_type_descriptor);
+
+    let getter_prototype = UserDefinedStruct::getter_prototype(struct_type_descriptor);
+
+    let mut getter_prototypes = Vec::new();
+
+    for i in 0..field_count {
+        getter_prototypes.push(UserDefinedStruct::getter_prototype_index(
+            struct_type_descriptor,
+            i,
+        ));
+    }
+
+    (
+        struct_type_descriptor,
+        struct_constructor,
+        struct_predicate,
+        getter_prototype,
+        getter_prototypes.into_stahlval().unwrap(),
+    )
+}
+
+// Implement internal thing here?
+struct StahlTrait {
+    name: InternedString,
+    method_names: Vec<InternedString>,
+}
+
+struct StahlTraitImplementation {}
+
+// Thread local v-table reference.
+// Rather than have structs hold their options directly, we will include a map which
+// is just a weak reference to the original arc. Then, in order to access the vtable, we use the Arc'd
+// name as a key, and use that to grab the properties. Under any circumstance that I am aware of,
+// the entry in the vtable should be alive for as long as the struct is legally allowed to be accessed.
+pub struct VTable {
+    map: fxhash::FxHashMap<InternedString, Gc<HashMap<StahlVal, StahlVal>>>,
+
+    traits: fxhash::FxHashMap<InternedString, fxhash::FxHashMap<InternedString, Vec<StahlVal>>>,
+
+    entries: Vec<VTableEntry>,
+}
+
+impl VTable {
+    fn insert(name: InternedString, options: Gc<HashMap<StahlVal, StahlVal>>) {
+        VTABLE.with(|x| x.borrow_mut().map.insert(name, options));
+    }
+
+    fn get(name: &InternedString) -> Option<Gc<HashMap<StahlVal, StahlVal>>> {
+        VTABLE.with(|x| x.borrow().map.get(name).cloned())
+    }
+
+    pub(crate) fn sendable_entries(
+        serializer: &mut std::collections::HashMap<usize, SerializableStahlVal>,
+        visited: &mut std::collections::HashSet<usize>,
+    ) -> Result<Vec<SendableVTableEntry>> {
+        VTABLE.with(|x| {
+            x.borrow()
+                .entries
+                .iter()
+                .map(|entry| {
+                    Ok(SendableVTableEntry {
+                        name: entry.name,
+                        proc: entry.proc,
+                        transparent: entry.transparent,
+                        mutable: entry.mutable,
+                        properties: entry
+                            .properties
+                            .iter()
+                            .map(|(key, value)| {
+                                Ok((
+                                    into_serializable_value(key.clone(), serializer, visited)?,
+                                    into_serializable_value(value.clone(), serializer, visited)?,
+                                ))
+                            })
+                            .collect::<Result<Vec<_>>>()?,
+                    })
+                })
+                .collect()
+        })
+    }
+
+    pub(crate) fn initialize_new_thread(
+        values: Vec<SendableVTableEntry>,
+        heap: &mut HeapSerializer,
+    ) {
+        for (index, entry) in values.into_iter().enumerate() {
+            Self::new_entry(entry.name, entry.proc);
+
+            let properties = Gc::new(
+                entry
+                    .properties
+                    .into_iter()
+                    .map(|(k, v)| {
+                        (
+                            from_serializable_value(heap, k),
+                            from_serializable_value(heap, v),
+                        )
+                    })
+                    .collect(),
+            );
+
+            Self::set_entry(&StructTypeDescriptor(index), entry.proc, properties);
+        }
+    }
+
+    // Returns a type descriptor, in this case it is just a usize
+    #[cfg(not(feature = "sync"))]
+    pub fn new_entry(name: InternedString, proc: Option<usize>) -> StructTypeDescriptor {
+        VTABLE.with(|x| {
+            let mut guard = x.borrow_mut();
+            let length = guard.entries.len();
+
+            guard.entries.push(VTableEntry::new(name, proc));
+
+            StructTypeDescriptor(length)
+        })
+    }
+
+    #[cfg(feature = "sync")]
+    pub fn new_entry(name: InternedString, proc: Option<usize>) -> StructTypeDescriptor {
+        let mut guard = STATIC_VTABLE.write();
+        let length = guard.entries.len();
+        guard.entries.push(VTableEntry::new(name, proc));
+        StructTypeDescriptor(length)
+    }
+
+    // Updates the entry with the now available property information
+    #[cfg(not(feature = "sync"))]
+    pub fn set_entry(
+        descriptor: &StructTypeDescriptor,
+        proc: Option<usize>,
+        properties: Gc<HashMap<StahlVal, StahlVal>>,
+    ) {
+        VTABLE.with(|x| {
+            let mut guard = x.borrow_mut();
+
+            let index = descriptor.0;
+
+            let value = &mut guard.entries[index];
+
+            value.proc = proc;
+
+            // TODO: Lift these strings to the thread local
+            value.transparent = properties
+                .get(&TRANSPARENT_KEY.with(|x| x.clone()))
+                .and_then(|x| x.as_bool())
+                .unwrap_or_default();
+            value.mutable = properties
+                .get(&MUTABLE_KEY.with(|x| x.clone()))
+                .and_then(|x| x.as_bool())
+                .unwrap_or_default();
+
+            value.properties = properties;
+        })
+    }
+
+    #[cfg(feature = "sync")]
+    pub fn set_entry(
+        descriptor: &StructTypeDescriptor,
+        proc: Option<usize>,
+        properties: Gc<HashMap<StahlVal, StahlVal>>,
+    ) {
+        let mut guard = STATIC_VTABLE.write();
+
+        let index = descriptor.0;
+
+        let value = &mut guard.entries[index];
+
+        value.proc = proc;
+
+        // TODO: Lift these strings to the thread local
+        value.transparent = properties
+            .get(&STATIC_TRANSPARENT_KEY)
+            .and_then(|x| x.as_bool())
+            .unwrap_or_default();
+        value.mutable = properties
+            .get(&STATIC_MUTABLE_KEY)
+            .and_then(|x| x.as_bool())
+            .unwrap_or_default();
+
+        value.properties = properties;
+    }
+
+    // fn define_trait()
+}
+
+pub static OK_RESULT_LABEL: Lazy<InternedString> = Lazy::new(|| "Ok".into());
+pub static SOME_OPTION_LABEL: Lazy<InternedString> = Lazy::new(|| "Some".into());
+pub static ERR_RESULT_LABEL: Lazy<InternedString> = Lazy::new(|| "Err".into());
+pub static NONE_OPTION_LABEL: Lazy<InternedString> = Lazy::new(|| "None".into());
+pub static TYPE_ID: Lazy<InternedString> = Lazy::new(|| "TypeId".into());
+
+pub static STRUCT_DEFINITIONS: Lazy<Arc<std::sync::RwLock<SymbolMap>>> =
+    Lazy::new(|| Arc::new(std::sync::RwLock::new(SymbolMap::default())));
+
+#[cfg(feature = "sync")]
+pub static STATIC_VTABLE: Lazy<RwLock<VTable>> = Lazy::new(|| {
+    let mut map = fxhash::FxHashMap::default();
+
+    #[cfg(feature = "sync")]
+    let result_options = Gc::new(im::hashmap! {
+        StahlVal::SymbolV("#:transparent".into()) => StahlVal::BoolV(true),
+    });
+
+    map.insert("Ok".into(), result_options.clone());
+    map.insert("Err".into(), result_options.clone());
+    map.insert("Some".into(), result_options.clone());
+    map.insert("None".into(), result_options.clone());
+    map.insert("TypeId".into(), result_options.clone());
+
+    RwLock::new(VTable {
+        map,
+        traits: fxhash::FxHashMap::default(),
+        entries: Vec::new(),
+    })
+});
+
+#[cfg(feature = "sync")]
+pub static STATIC_TRANSPARENT_KEY: Lazy<StahlVal> =
+    Lazy::new(|| StahlVal::SymbolV("#:transparent".into()));
+#[cfg(feature = "sync")]
+pub static STATIC_MUTABLE_KEY: Lazy<StahlVal> =
+    Lazy::new(|| StahlVal::SymbolV("#:transparent".into()));
+#[cfg(feature = "sync")]
+pub static STATIC_FIELDS_KEY: Lazy<StahlVal> =
+    Lazy::new(|| StahlVal::SymbolV("#:transparent".into()));
+
+pub static STATIC_OK_DESCRIPTOR: Lazy<StructTypeDescriptor> =
+    Lazy::new(|| VTable::new_entry(*OK_RESULT_LABEL, None));
+pub static STATIC_ERR_DESCRIPTOR: Lazy<StructTypeDescriptor> =
+    Lazy::new(|| VTable::new_entry(*ERR_RESULT_LABEL, None));
+pub static STATIC_SOME_DESCRIPTOR: Lazy<StructTypeDescriptor> =
+    Lazy::new(|| VTable::new_entry(*SOME_OPTION_LABEL, None));
+pub static STATIC_NONE_DESCRIPTOR: Lazy<StructTypeDescriptor> =
+    Lazy::new(|| VTable::new_entry(*NONE_OPTION_LABEL, None));
+
+// TODO: Just make these Arc'd and lazy static instead of thread local.
+thread_local! {
+
+    pub static TRANSPARENT_KEY: StahlVal = StahlVal::SymbolV("#:transparent".into());
+    pub static MUTABLE_KEY: StahlVal = StahlVal::SymbolV("#:mutable".into());
+    pub static FIELDS_KEY: StahlVal = StahlVal::SymbolV("#:fields".into());
+
+    // Consult this to get values. It is possible, the vtable is _not_ populated for a given thread.
+    // The only way that can happen is if a struct is constructed on another thread?
+    // The value inside should explicitly be a thread safe value.
+    pub static VTABLE: Rc<RefCell<VTable>> = {
+
+        let mut map = fxhash::FxHashMap::default();
+
+        #[cfg(feature = "sync")]
+        let result_options = Gc::new(im::hashmap! {
+            StahlVal::SymbolV("#:transparent".into()) => StahlVal::BoolV(true),
+        });
+
+        #[cfg(not(feature = "sync"))]
+        let result_options = Gc::new(im_rc::hashmap! {
+            StahlVal::SymbolV("#:transparent".into()) => StahlVal::BoolV(true),
+        });
+
+        map.insert("Ok".into(), result_options.clone());
+        map.insert("Err".into(), result_options.clone());
+        map.insert("Some".into(), result_options.clone());
+        map.insert("None".into(), result_options.clone());
+        map.insert("TypeId".into(), result_options.clone());
+
+        Rc::new(RefCell::new(VTable {
+            map,
+            traits: fxhash::FxHashMap::default(),
+            entries: Vec::new(),
+        }))
+    };
+
+    pub static DEFAULT_PROPERTIES: Gc<HashMap<StahlVal, StahlVal>> = Gc::new(HashMap::new());
+
+    #[cfg(feature = "sync")]
+    pub static STANDARD_OPTIONS: Gc<HashMap<StahlVal, StahlVal>> = Gc::new(im::hashmap! {
+            StahlVal::SymbolV("#:transparent".into()) => StahlVal::BoolV(true),
+    });
+
+    #[cfg(not(feature = "sync"))]
+    pub static STANDARD_OPTIONS: Gc<HashMap<StahlVal, StahlVal>> = Gc::new(im_rc::hashmap! {
+            StahlVal::SymbolV("#:transparent".into()) => StahlVal::BoolV(true),
+    });
+
+    pub static OK_DESCRIPTOR: StructTypeDescriptor = VTable::new_entry(*OK_RESULT_LABEL, None);
+    pub static ERR_DESCRIPTOR: StructTypeDescriptor = VTable::new_entry(*ERR_RESULT_LABEL, None);
+    pub static SOME_DESCRIPTOR: StructTypeDescriptor = VTable::new_entry(*SOME_OPTION_LABEL, None);
+    pub static NONE_DESCRIPTOR: StructTypeDescriptor = VTable::new_entry(*NONE_OPTION_LABEL, None);
+
+
+    pub static OK_CONSTRUCTOR: Rc<Box<dyn Fn(&[StahlVal]) -> Result<StahlVal>>> = {
+            Rc::new(Box::new(UserDefinedStruct::constructor_thunk(
+            1,
+            OK_DESCRIPTOR.with(|x| *x),
+        )))
+    };
+
+    pub static ERR_CONSTRUCTOR: Rc<Box<dyn Fn(&[StahlVal]) -> Result<StahlVal>>> = {
+        Rc::new(Box::new(UserDefinedStruct::constructor_thunk(
+            1,
+            ERR_DESCRIPTOR.with(|x| *x),
+        )))
+    };
+
+    #[cfg(not(feature = "sync"))]
+    pub static OPTION_OPTIONS: Gc<HashMap<StahlVal, StahlVal>> = Gc::new(im_rc::hashmap! {
+        StahlVal::SymbolV("#:transparent".into()) => StahlVal::BoolV(true),
+    });
+
+    #[cfg(feature = "sync")]
+    pub static OPTION_OPTIONS: Gc<HashMap<StahlVal, StahlVal>> = Gc::new(im::hashmap! {
+        StahlVal::SymbolV("#:transparent".into()) => StahlVal::BoolV(true),
+    });
+
+
+    pub static SOME_CONSTRUCTOR: Rc<Box<dyn Fn(&[StahlVal]) -> Result<StahlVal>>> = {
+        Rc::new(Box::new(UserDefinedStruct::constructor_thunk(
+            1,
+            SOME_DESCRIPTOR.with(|x| *x),
+        )))
+    };
+
+    pub static NONE_CONSTRUCTOR: Rc<Box<dyn Fn(&[StahlVal]) -> Result<StahlVal>>> = {
+        Rc::new(Box::new(UserDefinedStruct::constructor_thunk(
+            0,
+            NONE_DESCRIPTOR.with(|x| *x),
+        )))
+    };
+}
+
+pub(crate) fn build_type_id_module() -> BuiltInModule {
+    let mut module = BuiltInModule::new("stahl/core/types");
+
+    let name = *TYPE_ID;
+
+    let type_descriptor = VTable::new_entry(name, None);
+
+    // Build the getter for the first index
+    let getter = UserDefinedStruct::getter_prototype_index(type_descriptor, 0);
+    let predicate = UserDefinedStruct::predicate(type_descriptor);
+
+    let constructor = Arc::new(UserDefinedStruct::constructor_thunk(2, type_descriptor));
+
+    module
+        .register_fn("#%vtable-update-entry!", VTable::set_entry)
+        .register_value("TypeId?", predicate);
+
+    module
+}
+
+pub(crate) fn build_result_structs() -> BuiltInModule {
+    // Build module
+    let mut module = BuiltInModule::new("stahl/core/result".to_string());
+
+    #[cfg(not(feature = "sync"))]
+    {
+        let name = *OK_RESULT_LABEL;
+
+        let type_descriptor = OK_DESCRIPTOR.with(|x| *x);
+
+        // Build the getter for the first index
+        let getter = UserDefinedStruct::getter_prototype_index(type_descriptor, 0);
+        let predicate = UserDefinedStruct::predicate(type_descriptor);
+
+        VTable::set_entry(
+            &OK_DESCRIPTOR.with(|x| *x),
+            None,
+            STANDARD_OPTIONS.with(|x| x.clone()),
+        );
+
+        VTable::set_entry(
+            &ERR_DESCRIPTOR.with(|x| *x),
+            None,
+            STANDARD_OPTIONS.with(|x| x.clone()),
+        );
+
+        module
+            .register_value(
+                "Ok",
+                StahlVal::BoxedFunction(Gc::new(BoxedDynFunction::new_owned(
+                    Arc::new(UserDefinedStruct::constructor_thunk(
+                        1,
+                        OK_DESCRIPTOR.with(|x| *x),
+                    )),
+                    Some(name.resolve().to_string().into()),
+                    Some(1),
+                ))),
+            )
+            .register_value("Ok?", predicate)
+            .register_value("Ok->value", getter);
+    }
+
+    #[cfg(feature = "sync")]
+    {
+        let name = *OK_RESULT_LABEL;
+
+        let type_descriptor = *STATIC_OK_DESCRIPTOR;
+
+        // Build the getter for the first index
+        let getter = UserDefinedStruct::getter_prototype_index(type_descriptor, 0);
+        let predicate = UserDefinedStruct::predicate(type_descriptor);
+
+        VTable::set_entry(
+            &STATIC_OK_DESCRIPTOR,
+            None,
+            STANDARD_OPTIONS.with(|x| x.clone()),
+        );
+
+        VTable::set_entry(
+            &STATIC_ERR_DESCRIPTOR,
+            None,
+            STANDARD_OPTIONS.with(|x| x.clone()),
+        );
+
+        module
+            .register_value(
+                "Ok",
+                StahlVal::BoxedFunction(Gc::new(BoxedDynFunction::new_owned(
+                    Arc::new(UserDefinedStruct::constructor_thunk(
+                        1,
+                        *STATIC_OK_DESCRIPTOR,
+                    )),
+                    Some(name.resolve().to_string().into()),
+                    Some(1),
+                ))),
+            )
+            .register_value("Ok?", predicate)
+            .register_value("Ok->value", getter);
+    }
+
+    #[cfg(not(feature = "sync"))]
+    {
+        // let name = ERR_RESULT_LABEL.with(|x| Rc::clone(x));
+        let name = *ERR_RESULT_LABEL;
+
+        let type_descriptor = ERR_DESCRIPTOR.with(|x| *x);
+
+        // let constructor = UserDefinedStruct::constructor(Rc::clone(&name), 1);
+        let predicate = UserDefinedStruct::predicate(type_descriptor);
+
+        // Build the getter for the first index
+        let getter = UserDefinedStruct::getter_prototype_index(type_descriptor, 0);
+
+        module
+            .register_value(
+                "Err",
+                StahlVal::BoxedFunction(Gc::new(BoxedDynFunction::new_owned(
+                    Arc::new(UserDefinedStruct::constructor_thunk(
+                        1,
+                        ERR_DESCRIPTOR.with(|x| *x),
+                    )),
+                    Some(name.resolve().to_string().into()),
+                    Some(1),
+                ))),
+            )
+            .register_value("Err?", predicate)
+            .register_value("Err->value", getter);
+    }
+
+    #[cfg(feature = "sync")]
+    {
+        // let name = ERR_RESULT_LABEL.with(|x| Rc::clone(x));
+        let name = *ERR_RESULT_LABEL;
+
+        let type_descriptor = *STATIC_ERR_DESCRIPTOR;
+
+        // let constructor = UserDefinedStruct::constructor(Rc::clone(&name), 1);
+        let predicate = UserDefinedStruct::predicate(type_descriptor);
+
+        // Build the getter for the first index
+        let getter = UserDefinedStruct::getter_prototype_index(type_descriptor, 0);
+
+        module
+            .register_value(
+                "Err",
+                StahlVal::BoxedFunction(Gc::new(BoxedDynFunction::new_owned(
+                    Arc::new(UserDefinedStruct::constructor_thunk(
+                        1,
+                        *STATIC_ERR_DESCRIPTOR,
+                    )),
+                    Some(name.resolve().to_string().into()),
+                    Some(1),
+                ))),
+            )
+            .register_value("Err?", predicate)
+            .register_value("Err->value", getter);
+    }
+
+    module
+}
+
+pub(crate) fn build_option_structs() -> BuiltInModule {
+    // Build module
+    let mut module = BuiltInModule::new("stahl/core/option".to_string());
+
+    if cfg!(feature = "sync") {
+        VTable::set_entry(
+            &STATIC_SOME_DESCRIPTOR,
+            None,
+            STANDARD_OPTIONS.with(|x| x.clone()),
+        );
+
+        VTable::set_entry(
+            &STATIC_NONE_DESCRIPTOR,
+            None,
+            STANDARD_OPTIONS.with(|x| x.clone()),
+        );
+    } else {
+        VTable::set_entry(
+            &SOME_DESCRIPTOR.with(|x| *x),
+            None,
+            STANDARD_OPTIONS.with(|x| x.clone()),
+        );
+
+        VTable::set_entry(
+            &NONE_DESCRIPTOR.with(|x| *x),
+            None,
+            STANDARD_OPTIONS.with(|x| x.clone()),
+        );
+    }
+
+    #[cfg(not(feature = "sync"))]
+    {
+        // let name = SOME_OPTION_LABEL.with(|x| Rc::clone(x));
+        let name = *SOME_OPTION_LABEL;
+        let type_descriptor = SOME_DESCRIPTOR.with(|x| *x);
+
+        // Build the getter for the first index
+        let getter = UserDefinedStruct::getter_prototype_index(type_descriptor, 0);
+        let predicate = UserDefinedStruct::predicate(type_descriptor);
+
+        module
+            .register_value(
+                "Some",
+                StahlVal::BoxedFunction(Gc::new(BoxedDynFunction::new_owned(
+                    Arc::new(UserDefinedStruct::constructor_thunk(
+                        // Rc::clone(&name),
+                        1,
+                        SOME_DESCRIPTOR.with(|x| *x),
+                    )),
+                    Some(name.resolve().to_string().into()),
+                    Some(1),
+                ))),
+            )
+            .register_value("Some?", predicate)
+            .register_value("Some->value", getter);
+    }
+
+    #[cfg(feature = "sync")]
+    {
+        // let name = SOME_OPTION_LABEL.with(|x| Rc::clone(x));
+        let name = *SOME_OPTION_LABEL;
+        let type_descriptor = *STATIC_SOME_DESCRIPTOR;
+
+        // Build the getter for the first index
+        let getter = UserDefinedStruct::getter_prototype_index(type_descriptor, 0);
+        let predicate = UserDefinedStruct::predicate(type_descriptor);
+
+        module
+            .register_value(
+                "Some",
+                StahlVal::BoxedFunction(Gc::new(BoxedDynFunction::new_owned(
+                    Arc::new(UserDefinedStruct::constructor_thunk(
+                        // Rc::clone(&name),
+                        1,
+                        *STATIC_SOME_DESCRIPTOR,
+                    )),
+                    Some(name.resolve().to_string().into()),
+                    Some(1),
+                ))),
+            )
+            .register_value("Some?", predicate)
+            .register_value("Some->value", getter);
+    }
+
+    #[cfg(not(feature = "sync"))]
+    {
+        // let name = NONE_LABEL.with(|x| Rc::clone(x));
+        let name = *NONE_OPTION_LABEL;
+        let type_descriptor = NONE_DESCRIPTOR.with(|x| *x);
+        let predicate = UserDefinedStruct::predicate(type_descriptor);
+
+        module
+            .register_value(
+                "None",
+                StahlVal::BoxedFunction(Gc::new(BoxedDynFunction::new_owned(
+                    Arc::new(UserDefinedStruct::constructor_thunk(
+                        0,
+                        NONE_DESCRIPTOR.with(|x| *x),
+                    )),
+                    Some(name.resolve().to_string().into()),
+                    Some(0),
+                ))),
+            )
+            .register_value("None?", predicate);
+    }
+
+    #[cfg(feature = "sync")]
+    {
+        // let name = NONE_LABEL.with(|x| Rc::clone(x));
+        let name = *NONE_OPTION_LABEL;
+        let type_descriptor = *STATIC_NONE_DESCRIPTOR;
+        let predicate = UserDefinedStruct::predicate(type_descriptor);
+
+        module
+            .register_value(
+                "None",
+                StahlVal::BoxedFunction(Gc::new(BoxedDynFunction::new_owned(
+                    Arc::new(UserDefinedStruct::constructor_thunk(
+                        0,
+                        *STATIC_NONE_DESCRIPTOR,
+                    )),
+                    Some(name.resolve().to_string().into()),
+                    Some(0),
+                ))),
+            )
+            .register_value("None?", predicate);
+    }
+
+    module
+}
+
+pub struct RecoverableResult<T, E>(std::result::Result<T, E>);
+
+impl<T: IntoStahlVal, E: IntoStahlVal> IntoStahlVal for RecoverableResult<T, E> {
+    #[inline(always)]
+    fn into_stahlval(self) -> Result<StahlVal> {
+        match self.0 {
+            Ok(s) => s.into_stahlval(),
+            Err(e) => UserDefinedStruct::new_err(e.into_stahlval()?),
+        }
+    }
+}
+
+impl<T: IntoStahlVal, E: IntoStahlVal> From<RecoverableResult<T, E>> for std::result::Result<T, E> {
+    fn from(value: RecoverableResult<T, E>) -> Self {
+        value.0
+    }
+}
+
+impl<T: IntoStahlVal, E: IntoStahlVal> From<std::result::Result<T, E>> for RecoverableResult<T, E> {
+    fn from(value: std::result::Result<T, E>) -> Self {
+        RecoverableResult(value)
+    }
+}
+
+/// Result type that automatically maps into the equivalent Result type within Stahl.
+/// For example, `Ok(10)` will map to `(Ok 10)`, and `Err(10)` will map to `(Err 10)`.
+pub struct StahlResult<T, E>(std::result::Result<T, E>);
+impl<T: IntoStahlVal, E: IntoStahlVal> IntoStahlVal for StahlResult<T, E> {
+    #[inline(always)]
+    fn into_stahlval(self) -> Result<StahlVal> {
+        match self.0 {
+            Ok(s) => UserDefinedStruct::new_ok(s),
+            Err(e) => UserDefinedStruct::new_err(e.into_stahlval()?),
+        }
+    }
+}
+
+impl<T: IntoStahlVal, E: IntoStahlVal> From<StahlResult<T, E>> for std::result::Result<T, E> {
+    fn from(value: StahlResult<T, E>) -> Self {
+        value.0
+    }
+}
+
+impl<T: IntoStahlVal, E: IntoStahlVal> From<std::result::Result<T, E>> for StahlResult<T, E> {
+    fn from(value: std::result::Result<T, E>) -> Self {
+        StahlResult(value)
+    }
+}
+
+// By default, the standard result type will automatically unwrap ok values, and raise errors
+// if they occur as genuine stahl errors. If you'd like to catch these, you can set up an exception handler.
+// The runtime cost for this is relatively low.
+impl<T: IntoStahlVal, E: IntoStahlVal> IntoStahlVal for std::result::Result<T, E> {
+    fn into_stahlval(self) -> Result<StahlVal> {
+        match self {
+            Ok(s) => s.into_stahlval(),
+            Err(e) => Err(StahlErr::new(
+                ErrorKind::Generic,
+                e.into_stahlval()?.to_string(),
+            )),
+        }
+    }
+}
+
+impl<T: FromStahlVal, E: FromStahlVal> FromStahlVal for std::result::Result<T, E> {
+    fn from_stahlval(val: &StahlVal) -> Result<Self> {
+        if let StahlVal::CustomStruct(s) = val {
+            if s.is_ok() {
+                Ok(Ok(T::from_stahlval(s.fields.get(0).unwrap())?))
+            } else if s.is_err() {
+                Ok(Err(E::from_stahlval(s.fields.get(0).unwrap())?))
+            } else {
+                stop!(ConversionError => format!("Failed attempting to convert an instance of a stahlval into a result type: {val:?}"))
+            }
+        } else {
+            stop!(ConversionError => format!("Failed attempting to convert an instance of a stahlval into a result type - value is not a struct: {val:?}"));
+        }
+    }
+}

@@ -1,13 +1,13 @@
-(require-builtin steel/time)
-(require "steel/result")
+(require-builtin stahl/time)
+(require "stahl/result")
 
-(require "steel/tests/unit-test.scm"
-         (for-syntax "steel/tests/unit-test.scm")
+(require "stahl/tests/unit-test.scm"
+         (for-syntax "stahl/tests/unit-test.scm")
          "threads.scm")
 
 (require (for-syntax "../time/time.scm"))
 
-(require "steel/iterators")
+(require "stahl/iterators")
 
 (provide __module__)
 

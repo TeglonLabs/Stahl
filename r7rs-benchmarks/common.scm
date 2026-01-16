@@ -6,7 +6,7 @@
 ; (define (current-jiffy)
 ;   (llong->flonum (current-nanoseconds)))
 
-(require-builtin steel/time)
+(require-builtin stahl/time)
 
 ; (define values list)
 ; (define (call-with-values producer consumer)
@@ -14,7 +14,7 @@
 ;   (if (= (length result) 1) (car result) result))
 
 (define (this-scheme-implementation-name)
-  "steel")
+  "stahl")
 
 (define (current-jiffy)
   (current-milliseconds))

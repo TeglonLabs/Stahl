@@ -1,0 +1,13 @@
+[package]
+name = "stahl-doc"
+version.workspace = true
+edition = "2021"
+authors = ["mattwparas <matthewparas2020@u.northwestern.edu>"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/TeglonLabs/Stahl"
+description = "Document generation for stahl"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+stahl-core = { workspace = true }

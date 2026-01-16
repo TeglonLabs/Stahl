@@ -4,7 +4,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; (require "steel/mutable-vectors")
+; (require "stahl/mutable-vectors")
 
 (define-syntax do
   (syntax-rules ()

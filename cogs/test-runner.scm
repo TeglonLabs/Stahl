@@ -1,4 +1,4 @@
-(require "steel/fs/fs.scm")
+(require "stahl/fs/fs.scm")
 
 (define shared-engine (Engine::new))
 
@@ -47,7 +47,7 @@
 (walk-files (get-directory-from-args) require-file)
 
 (define test-stats
-  (~> (run! shared-engine '((require "steel/tests/unit-test.scm") (get-test-stats)))
+  (~> (run! shared-engine '((require "stahl/tests/unit-test.scm") (get-test-stats)))
       (Ok->value)
       (last)))
 

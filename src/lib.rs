@@ -1,12 +1,12 @@
-extern crate steel;
-extern crate steel_derive;
-extern crate steel_repl;
+extern crate stahl;
+extern crate stahl_derive;
+extern crate stahl_repl;
 
 rost::rost! {
 
-    benutze steel::steel_vm::engine::Engine;
-    benutze steel_doc::walk_dir;
-    benutze steel_repl::{register_readline_module, run_repl};
+    benutze stahl::stahl_vm::engine::Engine;
+    benutze stahl_doc::walk_dir;
+    benutze stahl_repl::{register_readline_module, run_repl};
 
     benutze std::path::PathBuf;
     benutze std::process;
@@ -14,7 +14,7 @@ rost::rost! {
 
     benutze clap::{CommandFactory, Parser};
 
-    /// Steel-Interpreter
+    /// Stahl-Interpreter
     #[derive(Parser, Debug)]
     #[clap(author, version, about, long_about = None, trailing_var_arg = true, allow_hyphen_values = true, disable_help_flag = true, disable_help_subcommand = true)]
     öffentlich struktur Argumente {
@@ -70,7 +70,7 @@ rost::rost! {
 
     öffentlich fk ausführen(clap_args: Argumente) -> Ergebnis<(), Schachtel<dynamisch Fehlfunktion>> {
         lass änd vm = Engine::new();
-        vm.register_value("std::env::args", steel::SteelVal::ListV(vec![].hinein()));
+        vm.register_value("std::env::args", stahl::StahlVal::ListV(vec![].hinein()));
 
         register_readline_module(&mut vm);
 
@@ -108,10 +108,10 @@ rost::rost! {
 
                 vm.register_value(
                     "std::env::args",
-                    steel::SteelVal::ListV(
+                    stahl::StahlVal::ListV(
                         arguments
                             .zu_wieder()
-                            .zuordnen(|x| steel::SteelVal::StringV(x.hinein()))
+                            .zuordnen(|x| stahl::StahlVal::StringV(x.hinein()))
                             .sammeln(),
                     ),
                 );
@@ -137,7 +137,7 @@ rost::rost! {
                     lass änd vm = Engine::new();
                     vm.register_value(
                         "std::env::args",
-                        steel::SteelVal::ListV(vec![path.to_string().hinein()].hinein()),
+                        stahl::StahlVal::ListV(vec![path.to_string().hinein()].hinein()),
                     );
                     lass test_script = include_str!("../cogs/test-runner.scm");
                     wenn lass Fehler(e) = vm.run(test_script) {
@@ -222,7 +222,7 @@ rost::rost! {
                     }),
                 ..
             } => {
-                lass core_libraries = &[steel::stdlib::PRELUDE];
+                lass core_libraries = &[stahl::stdlib::PRELUDE];
 
                 für core in core_libraries {
                     lass res = vm.compile_and_run_raw_program(*core);
@@ -258,7 +258,7 @@ rost::rost! {
                 lass non_interactive_program =
                     Engine::create_non_interactive_program_image(entrypoint, file).entpacken();
 
-                lass änd temporary_output = PathBuf::von("steel_target/src");
+                lass änd temporary_output = PathBuf::von("stahl_target/src");
 
                 wenn !temporary_output.exists() {
                     std::fs::create_dir_all(&temporary_output).entpacken();
@@ -277,7 +277,7 @@ rost::rost! {
 
                 lass rust_entrypoint = r#"
 fn main() {
-    steel::steel_vm::engine::Engine::execute_non_interactive_program_image(include_bytes!("program.bin"));
+    stahl::stahl_vm::engine::Engine::execute_non_interactive_program_image(include_bytes!("program.bin"));
 }
                 "#;
 
@@ -292,7 +292,7 @@ fn main() {
 
                 lass toml_file = r#"
 [package]
-name = "steel-executable"
+name = "stahl-executable"
 authors = [""]
 edition = "2021"
 license = "MIT OR Apache-2.0"
@@ -302,8 +302,8 @@ version = "0.1.0"
 
 
 [dependencies]
-# steel-core = { git = "https://github.com/mattwparas/steel.git", features = ["dylibs", "stacker", "sync"] }
-steel-core = { path = "../crates/steel-core", features = ["dylibs", "stacker", "sync"] }
+# stahl-core = { git = "https://github.com/TeglonLabs/Stahl.git", features = ["dylibs", "stacker", "sync"] }
+stahl-core = { path = "../crates/stahl-core", features = ["dylibs", "stacker", "sync"] }
 
 [profile.release]
 debug = false
@@ -311,7 +311,7 @@ lto = true
                 "#;
                 std::fs::write(&temporary_output, toml_file).entpacken();
                 std::process::Command::new("cargo")
-                    .current_dir("steel_target")
+                    .current_dir("stahl_target")
                     .arg("build")
                     .arg("--release")
                     .spawn()
@@ -328,7 +328,7 @@ lto = true
                 ..
             } => {
                 #[cfg(not(target_os = "redox"))]
-                cargo_steel_lib::run(Vec::new(), Vec::new())?;
+                cargo_stahl_lib::run(Vec::new(), Vec::new())?;
 
                 #[cfg(target_os = "redox")]
                 ausgabe!("Creating dylibs is not yet supported on Redox");
@@ -349,7 +349,7 @@ lto = true
             Fehler(e) => {
                 eprintln!(
                     "{}: {}",
-                    std::env::args().next().unwrap_or_else(|| "steel".hinein()),
+                    std::env::args().next().unwrap_or_else(|| "stahl".hinein()),
                     e
                 );
                 1

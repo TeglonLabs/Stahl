@@ -12,7 +12,7 @@
 ; LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 ; CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ;
-; Modified for use within Steel by Matthew Paras (2023).
+; Modified for use within Stahl by Matthew Paras (2023).
 
 (provide format)
 

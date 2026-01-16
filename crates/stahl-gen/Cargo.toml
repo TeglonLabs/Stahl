@@ -1,0 +1,15 @@
+[package]
+name = "stahl-gen"
+version = "0.2.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+authors = ["mattwparas <matthewparas2020@u.northwestern.edu>"]
+repository = "https://github.com/TeglonLabs/Stahl"
+description = "Code generation crates for use within stahl"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+codegen = "0.2.0"
+serde = { version = "1.0.152", features = ["derive"] }
+serde_derive = "1.0.152"

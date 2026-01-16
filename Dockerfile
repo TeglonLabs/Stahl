@@ -1,8 +1,8 @@
 FROM rust:slim AS build
 
-COPY . /steel/
+COPY . /stahl/
 
-WORKDIR /steel
+WORKDIR /stahl
 
 RUN apt update && \
 		apt install -y \
@@ -11,22 +11,22 @@ RUN apt update && \
 		openssl \
 		pkg-config
 
-RUN mkdir -p /lib/steel/
+RUN mkdir -p /lib/stahl/
 
-ENV STEEL_HOME="/lib/steel"
+ENV STAHL_HOME="/lib/stahl"
 
 RUN cargo build --release
 
-RUN cargo install --path crates/cargo-steel-lib
+RUN cargo install --path crates/cargo-stahl-lib
 
 RUN cd cogs && cargo run -- install.scm
 
 FROM rust:slim
 
-COPY --from=build /steel/target/release/steel /usr/local/bin
+COPY --from=build /stahl/target/release/stahl /usr/local/bin
 
-COPY --from=build /lib/steel /lib/
+COPY --from=build /lib/stahl /lib/
 
-ENV STEEL_HOME="/lib/steel"
+ENV STAHL_HOME="/lib/stahl"
 
-CMD ["steel"]
+CMD ["stahl"]

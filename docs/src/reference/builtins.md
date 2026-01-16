@@ -1,8 +1,8 @@
 
-# steel/core/option
-# steel/core/result
-# steel/identity
-# steel/hash
+# stahl/core/option
+# stahl/core/result
+# stahl/identity
+# stahl/hash
 ### **hash-try-get**
 Gets the `key` from the given `map`. Returns #false if the key does not exist.
 
@@ -75,17 +75,17 @@ so the old hash map is still accessible.
 'c: 30
 }>
 ```
-# steel/random
-# steel/io
-# steel/equality
-# steel/ord
-# steel/json
-# steel/sets
-# steel/time
-### **steel/time**
+# stahl/random
+# stahl/io
+# stahl/equality
+# stahl/ord
+# stahl/json
+# stahl/sets
+# stahl/time
+### **stahl/time**
 
 
-#### steel/time
+#### stahl/time
     
 Contains direct wrappers around the Rust `std::time::Instant` and `std::time::Duration` modules. 
 For example, to measure the time something takes:
@@ -96,8 +96,8 @@ For example, to measure the time something takes:
 (displayln (instant/elapsed t))
 ```
 
-# steel/vectors
-# steel/ports
+# stahl/vectors
+# stahl/ports
 ### **read-port-to-string**
 Takes a port and reads the entire content into a string
 
@@ -161,7 +161,7 @@ Takes a filename `path` referring to a file to be created and returns an output 
 ```scheme
 > (open-output-file "foo-bar.txt") ;; => #<port>
 ```
-# steel/strings
+# stahl/strings
 ### **starts-with?**
 Checks if the input string starts with a prefix
 
@@ -324,13 +324,13 @@ Concatenatives all of the inputs to their string representation, separated by sp
 > (to-string 10) ;; => "10"
 > (to-string "hello" "world") ;; => "hello world"
 ```
-# steel/filesystem
-# steel/syntax
-# steel/transducers
-# steel/symbols
-# steel/strings/colors
-# steel/meta
-# steel/base
+# stahl/filesystem
+# stahl/syntax
+# stahl/transducers
+# stahl/symbols
+# stahl/strings/colors
+# stahl/meta
+# stahl/base
 ### **read-port-to-string**
 Takes a port and reads the entire content into a string
 
@@ -354,7 +354,7 @@ Checks whether the given map contains the given key. Key must be hashable.
 ### **list-ref**
 Returns the value located at the given index. Will raise an error if you try to index out of bounds.
 
-Note: Runs in time proportional to the length of the list, however lists in Steel are implemented in such a fashion that the
+Note: Runs in time proportional to the length of the list, however lists in Stahl are implemented in such a fashion that the
 time complexity is O(n/64). Meaning, for small lists this can be constant.
 
 (list-ref lst index) -> list?
@@ -520,7 +520,7 @@ Gets the `key` from the given `map`. Returns #false if the key does not exist.
 ```
 ### **pair?**
 Checks if the given value can be treated as a pair.
-Note - there are no improper lists in steel, so any list with at least one element
+Note - there are no improper lists in stahl, so any list with at least one element
 is considered a pair.
 
 (pair? any/c) -> bool?
@@ -532,10 +532,10 @@ is considered a pair.
 > (pair? '(10)) ;; => #true
 > (pair? '()) ;; => #false
 ```
-### **steel/lists**
-#### steel/lists
+### **stahl/lists**
+#### stahl/lists
 
-Lists in Steel have an interface that matches those of classic schemes or lisps.
+Lists in Stahl have an interface that matches those of classic schemes or lisps.
 At face value, they appear to be implemented as cons cells - however, under the hood
 they are actually implemented as unrolled linked lists.
 
@@ -662,10 +662,10 @@ Concatenates all of the given strings into one
 ```scheme
 > (string-append) ;; => ""
 > (string-append "foo" "bar") ;; => "foobar"
-### **steel/time**
+### **stahl/time**
 
 
-#### steel/time
+#### stahl/time
     
 Contains direct wrappers around the Rust `std::time::Instant` and `std::time::Duration` modules. 
 For example, to measure the time something takes:
@@ -790,16 +790,16 @@ Converts a string into a symbol.
 ```scheme
 > (string->symbol "FooBar") ;; => 'FooBar
 ```
-# steel/process
-# steel/numbers
-# steel/streams
-# steel/constants
-# steel/threads
-# steel/lists
-### **steel/lists**
-#### steel/lists
+# stahl/process
+# stahl/numbers
+# stahl/streams
+# stahl/constants
+# stahl/threads
+# stahl/lists
+### **stahl/lists**
+#### stahl/lists
 
-Lists in Steel have an interface that matches those of classic schemes or lisps.
+Lists in Stahl have an interface that matches those of classic schemes or lisps.
 At face value, they appear to be implemented as cons cells - however, under the hood
 they are actually implemented as unrolled linked lists.
 
@@ -813,7 +813,7 @@ Indexing into a list also takes O(n/64) - which means you'll get constant time i
 ```
 ### **pair?**
 Checks if the given value can be treated as a pair.
-Note - there are no improper lists in steel, so any list with at least one element
+Note - there are no improper lists in stahl, so any list with at least one element
 is considered a pair.
 
 (pair? any/c) -> bool?
@@ -925,7 +925,7 @@ error[E11]: Generic
 ### **list-ref**
 Returns the value located at the given index. Will raise an error if you try to index out of bounds.
 
-Note: Runs in time proportional to the length of the list, however lists in Steel are implemented in such a fashion that the
+Note: Runs in time proportional to the length of the list, however lists in Stahl are implemented in such a fashion that the
 time complexity is O(n/64). Meaning, for small lists this can be constant.
 
 (list-ref lst index) -> list?
@@ -944,4 +944,4 @@ error[E11]: Generic
 1 │ (list-ref (list 1 2 3 4) 10)
 │  ^^^^^^^^ out of bounds index in list-ref - list length: 4, index: 10
 ```
-# steel/contracts
+# stahl/contracts

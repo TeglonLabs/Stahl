@@ -1,26 +1,26 @@
-# Mitwirken an Steel
+# Mitwirken an Stahl
 
 ## Erste Schritte
 
-Das Folgende klont Steel aus dem primären Repository und führt die Test-Suite aus. Sie sollten zuvor eine [aktuelle Rust-Toolchain](https://www.rust-lang.org/tools/install) eingerichtet haben.
+Das Folgende klont Stahl aus dem primären Repository und führt die Test-Suite aus. Sie sollten zuvor eine [aktuelle Rust-Toolchain](https://www.rust-lang.org/tools/install) eingerichtet haben.
 
 ```bash
-git clone https://github.com/mattwparas/steel.git &&
-cd steel &&
+git clone https://github.com/TeglonLabs/Stahl.git &&
+cd stahl &&
 cargo xtask install &&
 cargo test --all
 ```
 
 Dies installiert:
 
-* Den Steel-Interpreter, `steel`
-* Den Dylib-Installer, `cargo-steel-lib` (auch über den Interpreter verfügbar)
-* Den Steel Language Server
+* Den Stahl-Interpreter, `stahl`
+* Den Dylib-Installer, `cargo-stahl-lib` (auch über den Interpreter verfügbar)
+* Den Stahl Language Server
 * Die Standardbibliothek, zu finden im `cogs`-Verzeichnis
 
 ## Commit-Nachrichten-Stil
 
-Steel verwendet keinen strengen Commit-Nachrichten-Stil oder eine Konvention. Versuchen Sie, Best Practices zu folgen, indem Sie die erste Zeile prägnant und beschreibend halten, ansonsten verwenden Sie Ihr bestes Urteilsvermögen.
+Stahl verwendet keinen strengen Commit-Nachrichten-Stil oder eine Konvention. Versuchen Sie, Best Practices zu folgen, indem Sie die erste Zeile prägnant und beschreibend halten, ansonsten verwenden Sie Ihr bestes Urteilsvermögen.
 
 ## Einreichen von Patches
 

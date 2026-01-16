@@ -1,9 +1,9 @@
 ;; Download a package from git - These should be stored in a reasonable location, probably under the
-;; $STEEL_HOME directory.
+;; $STAHL_HOME directory.
 
-(require-builtin steel/process)
-(require-builtin steel/git)
-(require "steel/result")
+(require-builtin stahl/process)
+(require-builtin stahl/git)
+(require "stahl/result")
 (require "parser.scm")
 
 (provide maybe-git-clone
@@ -21,14 +21,14 @@
       (string-append path dir)
       (string-append path SEP dir)))
 
-(define (path-from-steel-home dir)
-  (~> (steel-home-location) (append-with-separator dir)))
+(define (path-from-stahl-home dir)
+  (~> (stahl-home-location) (append-with-separator dir)))
 
-(define *COG_DIR* (path-from-steel-home "cogs"))
-(define *COG-SOURCES* (path-from-steel-home "cog-sources"))
-(define *NATIVE_SOURCES_DIR* (path-from-steel-home "sources"))
-(define *DYLIB-DIR* (path-from-steel-home "native"))
-(define *CARGO_TARGET_DIR* (path-from-steel-home "target"))
+(define *COG_DIR* (path-from-stahl-home "cogs"))
+(define *COG-SOURCES* (path-from-stahl-home "cog-sources"))
+(define *NATIVE_SOURCES_DIR* (path-from-stahl-home "sources"))
+(define *DYLIB-DIR* (path-from-stahl-home "native"))
+(define *CARGO_TARGET_DIR* (path-from-stahl-home "target"))
 
 ;;@doc
 ;; Most likely should use gix here instead of shelling out to git?
@@ -97,7 +97,7 @@
         (for-each thread-join! *jobs*)
         (for-each wait *jobs*))))
 
-;; Run the cargo-steel-lib installer in the target directory
+;; Run the cargo-stahl-lib installer in the target directory
 ; (define (run-dylib-installation target-directory #:subdir [subdir ""])
 ;   (wait (run-dylib-installation-in-background target-directory #:subdir subdir)))
 
@@ -121,7 +121,7 @@
          (displayln "Finished building")))
 
       ;; This... should be run in the background?
-      (~> (command "cargo-steel-lib" '())
+      (~> (command "cargo-stahl-lib" '())
           (in-directory target)
           (with-env-var "CARGO_TARGET_DIR"
                         (append-with-separator *CARGO_TARGET_DIR* (file-name target-directory)))
@@ -160,7 +160,7 @@
 ;; isn't present.
 (define (try-parse-toml str)
   ;; Include the dylib if relevant
-  (eval '(#%require-dylib "libsteel_toml" (only-in toml->value string->toml)))
+  (eval '(#%require-dylib "libstahl_toml" (only-in toml->value string->toml)))
   (eval `(toml->value (string->toml ,str))))
 
 ;; TODO: Implement some proper error handling, assuming we can't discover

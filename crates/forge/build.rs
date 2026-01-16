@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use steel::steel_vm::engine::Engine;
+use stahl::stahl_vm::engine::Engine;
 
 fn main() {
     // Re run this if any of the files within the directory
@@ -26,7 +26,7 @@ fn main() {
     let rust_entrypoint = format!(
         r#"
 fn main() {{
-    steel::steel_vm::engine::Engine::execute_non_interactive_program_image(include_bytes!(r"{}")).unwrap();
+    stahl::stahl_vm::engine::Engine::execute_non_interactive_program_image(include_bytes!(r"{}")).unwrap();
 }}
     "#,
         dest_bytes.as_os_str().to_str().unwrap()

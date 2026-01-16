@@ -32,7 +32,7 @@ in
     cargoLock = {
       lockFile = ../Cargo.lock;
     };
-    cargoBuildFlags = "-p cargo-steel-lib -p steel-interpreter";
+    cargoBuildFlags = "-p cargo-stahl-lib -p stahl-interpreter";
 
     buildInputs = [openssl] ++ lib.optionals stdenv.isDarwin [Security];
     nativeBuildInputs = [
@@ -42,20 +42,20 @@ in
     # Test failing
     doCheck = false;
     postInstall = ''
-      substituteInPlace cogs/installer/download.scm --replace-warn "cargo-steel-lib" "$out/bin/cargo-steel-lib"
+      substituteInPlace cogs/installer/download.scm --replace-warn "cargo-stahl-lib" "$out/bin/cargo-stahl-lib"
       mkdir $out/lib
-      export STEEL_HOME="$out/lib"
+      export STAHL_HOME="$out/lib"
       pushd cogs
-      $out/bin/steel install.scm
+      $out/bin/stahl install.scm
       popd
-      rm "$out/bin/cargo-steel-lib"
+      rm "$out/bin/cargo-stahl-lib"
     '';
 
     meta = {
       description = "An embedded scheme interpreter in Rust";
-      homepage = "https://github.com/mattwparas/steel";
+      homepage = "https://github.com/TeglonLabs/Stahl";
       license = with lib.licenses; [asl20 mit];
       platforms = lib.platforms.unix;
-      mainProgram = "steel";
+      mainProgram = "stahl";
     };
   }

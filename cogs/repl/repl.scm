@@ -1,5 +1,5 @@
-(require-builtin steel/tcp)
-(require "steel/sync")
+(require-builtin stahl/tcp)
+(require "stahl/sync")
 
 (provide repl-serve)
 

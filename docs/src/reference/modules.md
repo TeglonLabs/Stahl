@@ -1,6 +1,6 @@
 # Modules
 
-In order to support a growing codebase, Steel has module support for projects spanning multiple files. Steel files can `provide` values (with contracts attached) and `require` modules from other files:
+In order to support a growing codebase, Stahl has module support for projects spanning multiple files. Stahl files can `provide` values (with contracts attached) and `require` modules from other files:
 
 ```scheme
 ;; main.scm

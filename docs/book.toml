@@ -3,7 +3,7 @@ authors = ["mattwparas", "fominok"]
 language = "en"
 multilingual = false
 src = "src"
-title = "The Steel Book"
+title = "The Stahl Book"
 
 [preprocessor.pagetoc]
 [output.html]

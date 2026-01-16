@@ -4,16 +4,16 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use steel::steel_vm::engine::Engine;
-use steel::steel_vm::register_fn::RegisterFn;
+use stahl::stahl_vm::engine::Engine;
+use stahl::stahl_vm::register_fn::RegisterFn;
 
 use once_cell::sync::Lazy;
-use steel_derive::Steel; // 1.3.1
+use stahl_derive::Stahl; // 1.3.1
 
-// Since Steel is a functional language, we can perform mutation by using the interior mutability pattern
+// Since Stahl is a functional language, we can perform mutation by using the interior mutability pattern
 // We expose an Rc<RefCell<T>> (or, in a multi thread environment an Arc<Mutex<T>>) and expose
 // functions to interact with it
-#[derive(Clone, Debug, Steel, PartialEq)]
+#[derive(Clone, Debug, Stahl, PartialEq)]
 pub struct RcRefCellWrapper(usize);
 
 pub fn new_rc_ref_cell(val: usize) -> RcRefCellWrapper {
@@ -24,7 +24,7 @@ pub fn rc_refcell_increment(value: &mut RcRefCellWrapper) {
     value.0 += 1;
 }
 
-#[derive(Clone, Debug, Steel)]
+#[derive(Clone, Debug, Stahl)]
 pub struct MutexWrapper(Arc<Mutex<usize>>);
 
 pub fn new_mutex_wrapper(val: usize) -> MutexWrapper {

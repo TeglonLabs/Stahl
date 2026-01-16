@@ -1,4 +1,4 @@
-# steel/ord
+# stahl/ord
 Real numbers ordering module.
 ### **<**
 Compares real numbers to check if any number is less than the subsequent.

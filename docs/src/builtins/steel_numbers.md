@@ -1,4 +1,4 @@
-# steel/numbers
+# stahl/numbers
 ### **\***
 Multiplies the given numbers.
 

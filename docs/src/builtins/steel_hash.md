@@ -1,4 +1,4 @@
-# steel/hash
+# stahl/hash
 ### **hash**
 Creates an immutable hash table with each given `key` mapped to the following `val`.
 Each key must have a val, so the total number of arguments must be even.

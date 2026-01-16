@@ -1,29 +1,29 @@
-extern crate steel;
-extern crate steel_derive;
-extern crate steel_repl;
+extern crate stahl;
+extern crate stahl_derive;
+extern crate stahl_repl;
 
-use steel_derive::Steel;
+use stahl_derive::Stahl;
 
-use steel::steel_vm::engine::Engine;
-use steel_repl::run_repl;
+use stahl::stahl_vm::engine::Engine;
+use stahl_repl::run_repl;
 
 use std::cell::RefCell;
 use std::cmp::{max, min};
 use std::collections::HashMap;
 use std::process;
 
-use steel::gc::{MutContainer, ShareableMut, Shared, SharedMut};
-use steel::steel_vm::register_fn::RegisterFn;
+use stahl::gc::{MutContainer, ShareableMut, Shared, SharedMut};
+use stahl::stahl_vm::register_fn::RegisterFn;
 
 use env_logger::Builder;
 use log::LevelFilter;
 
-/// An implementation of a spell check in steel, with the levenshtein distance calculated
-/// via Rust, and a BKTree implementation in steel
+/// An implementation of a spell check in stahl, with the levenshtein distance calculated
+/// via Rust, and a BKTree implementation in stahl
 /// For optimal performance, implementing the entire spellchecker in Rust and exposing
-/// an interface to Steel would be ideal, however since trees go naturally with schemes
+/// an interface to Stahl would be ideal, however since trees go naturally with schemes
 /// in general, I opted to include this as an example
-/// Note: It is possible to implement the levenshtein distance in Steel, however at scale
+/// Note: It is possible to implement the levenshtein distance in Stahl, however at scale
 /// it proves to be cumbersome and slows down the spell checking greatly.
 ///
 ///
@@ -33,7 +33,7 @@ fn main() {
     let mut builder = Builder::new();
 
     builder
-        .filter(Some("steel::compiler::code_generator"), LevelFilter::Trace)
+        .filter(Some("stahl::compiler::code_generator"), LevelFilter::Trace)
         .init();
 
     let mut vm = configure_engine();
@@ -55,7 +55,7 @@ fn finish(result: Result<(), std::io::Error>) -> ! {
         Err(e) => {
             eprintln!(
                 "{}: {}",
-                std::env::args().next().unwrap_or_else(|| "steel".into()),
+                std::env::args().next().unwrap_or_else(|| "stahl".into()),
                 e
             );
             1
@@ -73,7 +73,7 @@ pub fn configure_engine() -> Engine {
     vm
 }
 
-#[derive(Clone, Debug, Steel)]
+#[derive(Clone, Debug, Stahl)]
 pub struct Levenshtein(SharedMut<EditDistance>);
 
 impl Levenshtein {

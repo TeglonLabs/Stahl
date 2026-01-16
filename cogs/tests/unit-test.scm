@@ -1,4 +1,4 @@
-(require "steel/colors/colors.scm")
+(require "stahl/colors/colors.scm")
 
 (provide test
          (for-syntax check-equal?)

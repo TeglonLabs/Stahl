@@ -1,5 +1,5 @@
 {
-  description = "Steel";
+  description = "Stahl";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -15,8 +15,8 @@
     pkgsFor = nixpkgs.legacyPackages;
   in {
     packages = eachSystem (system: {
-      default = self.packages.${system}.steel;
-      steel = pkgsFor.${system}.callPackage ./nix/package.nix {
+      default = self.packages.${system}.stahl;
+      stahl = pkgsFor.${system}.callPackage ./nix/package.nix {
         inherit (pkgsFor.${system}.darwin.apple_sdk.frameworks) Security;
       };
     });
@@ -29,19 +29,19 @@
 
     devShells = eachSystem (system: {
       default = pkgsFor.${system}.callPackage ./nix/shell.nix {
-        inherit (self.packages.${system}) steel;
+        inherit (self.packages.${system}) stahl;
         inherit (pkgsFor.${system}.darwin.apple_sdk.frameworks) CoreServices SystemConfiguration;
       };
     });
 
     apps = eachSystem (system: {
-      steel = {
+      stahl = {
         type = "app";
         program =
           pkgsFor.${system}.lib.getExe
-          self.packages.${system}.steel;
+          self.packages.${system}.stahl;
       };
-      default = self.apps.${system}.steel;
+      default = self.apps.${system}.stahl;
     });
   };
 }

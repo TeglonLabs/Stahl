@@ -9,9 +9,9 @@
 (define *interpreter-map*
   (hash "py"
         "python3.13"
-        ;; "scm" "../target/release/steel"
+        ;; "scm" "../target/release/stahl"
         "scm"
-        "../target/aarch64-apple-darwin/release/steel"
+        "../target/aarch64-apple-darwin/release/stahl"
         "lua"
         "lua"))
 
@@ -41,7 +41,7 @@
                                                    ("bin-trees" "--warmup" "10")))
 
 (define (main)
-  (print "Building steel for release...")
+  (print "Building stahl for release...")
   (build-release)
   (print "Running benches...")
   (transduce *benches*
@@ -56,14 +56,14 @@
 (main)
 
 ; (define (main)
-;     (displayln "Building steel for release...")
+;     (displayln "Building stahl for release...")
 ;     (build-release)
 ;     (displayln "Running benches...")
-;     (run-bench "../target/release/steel startup/startup.scm" "python3.10 startup/startup.py" "--warmup" "10" "--min-runs" "100")
-;     (run-bench "../target/release/steel fib/fib.scm" "python3.10 fib/fib.py" "--warmup" "10" "--min-runs" "40")
-;     ; (run-bench '("../target/release/steel fib/fib.scm" "python3 fib/fib.py" "lua fib/fib.lua" "--warmup" "10" "--min-runs" "40"))
-;     ; (run-bench '("../target/release/steel ack/ack.scm" "python3 ack/ack.py" "lua ack/ack.lua" "--warmup" "10" "--min-runs" "40"))
-;     ; (run-bench '("../target/release/steel bin-trees/bin-trees.scm" "python3 bin-trees/bin_trees.py" "--warmup" "5"))
+;     (run-bench "../target/release/stahl startup/startup.scm" "python3.10 startup/startup.py" "--warmup" "10" "--min-runs" "100")
+;     (run-bench "../target/release/stahl fib/fib.scm" "python3.10 fib/fib.py" "--warmup" "10" "--min-runs" "40")
+;     ; (run-bench '("../target/release/stahl fib/fib.scm" "python3 fib/fib.py" "lua fib/fib.lua" "--warmup" "10" "--min-runs" "40"))
+;     ; (run-bench '("../target/release/stahl ack/ack.scm" "python3 ack/ack.py" "lua ack/ack.lua" "--warmup" "10" "--min-runs" "40"))
+;     ; (run-bench '("../target/release/stahl bin-trees/bin-trees.scm" "python3 bin-trees/bin_trees.py" "--warmup" "5"))
 ;     (displayln "Done"))
 
 ; (main)

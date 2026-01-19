@@ -28,8 +28,8 @@ jobs:
       - name: Remove sync feature from build
         run: sed -i 's/"stacker", "sync"/"stacker"/' Cargo.toml
 
-      - name: Set the STEEL_HOME environment variable
-        run: echo STEEL_HOME=${PWD}/.steel >> $GITHUB_ENV 
+      - name: Set the STAHL_HOME environment variable
+        run: echo STAHL_HOME=${PWD}/.stahl >> $GITHUB_ENV
 
       - uses: Swatinem/rust-cache@v2
         with:
@@ -38,23 +38,23 @@ jobs:
       - name: Build
         run: cargo build --no-default-features --verbose
         
-      - name: install steel dylib installer
+      - name: install stahl dylib installer
         env:
-          STEEL_HOME: ${{ env.STEEL_HOME }}
-        run: mkdir -p $STEEL_HOME/native && cd crates/cargo-steel-lib && cargo install --path . --force
+          STAHL_HOME: ${{ env.STAHL_HOME }}
+        run: mkdir -p $STAHL_HOME/native && cd crates/cargo-stahl-lib && cargo install --path . --force
 
       - name: Install cogs
         env:
-          STEEL_HOME: ${{ env.STEEL_HOME }}
+          STAHL_HOME: ${{ env.STAHL_HOME }}
         run: |
-          echo $STEEL_HOME
-          mkdir -p .steel/cogs
+          echo $STAHL_HOME
+          mkdir -p .stahl/cogs
           cd cogs/
           cargo run -- install.scm
 
       - uses: actions-rs/cargo@v1
         env:
-          STEEL_HOME: ${{ env.STEEL_HOME }}
+          STAHL_HOME: ${{ env.STAHL_HOME }}
         with:
           command: test
           args: --all
@@ -63,7 +63,7 @@ jobs:
         run: cargo install cargo-tarpaulin --force
 
       - name: run code coverage
-        run: cargo tarpaulin --exclude steel-derive --all --no-default-features -o "lcov" --engine llvm
+        run: cargo tarpaulin --exclude stahl-derive --all --no-default-features -o "lcov" --engine llvm
 
       - name: Coveralls GitHub Action
         uses: coverallsapp/github-action@v1.1.2
@@ -99,8 +99,8 @@ jobs:
           profile: minimal
           override: true
 
-      - name: Set the STEEL_HOME environment variable
-        run: echo STEEL_HOME=${PWD}/.steel-sync >> $GITHUB_ENV 
+      - name: Set the STAHL_HOME environment variable
+        run: echo STAHL_HOME=${PWD}/.stahl-sync >> $GITHUB_ENV
 
       - uses: Swatinem/rust-cache@v2
         with:
@@ -109,31 +109,31 @@ jobs:
       - name: Build
         run: cargo build --verbose
         
-      - name: Install steel dylib installer and package manager
+      - name: Install stahl dylib installer and package manager
         env:
-          STEEL_HOME: ${{ env.STEEL_HOME }}
-        # run: mkdir -p $STEEL_HOME/native && cd crates/cargo-steel-lib && cargo install --path .
-        run: cargo install --path crates/cargo-steel-lib --force && cargo install --path crates/forge --force
+          STAHL_HOME: ${{ env.STAHL_HOME }}
+        # run: mkdir -p $STAHL_HOME/native && cd crates/cargo-stahl-lib && cargo install --path .
+        run: cargo install --path crates/cargo-stahl-lib --force && cargo install --path crates/forge --force
 
       - name: Install cogs
         env:
-          STEEL_HOME: ${{ env.STEEL_HOME }}
+          STAHL_HOME: ${{ env.STAHL_HOME }}
         run: |
-          echo $STEEL_HOME
-          mkdir -p .steel/cogs
+          echo $STAHL_HOME
+          mkdir -p .stahl/cogs
           cd cogs/
           cargo run -- install.scm
 
       - uses: actions-rs/cargo@v1
         env:
-          STEEL_HOME: ${{ env.STEEL_HOME }}
+          STAHL_HOME: ${{ env.STAHL_HOME }}
         with:
           command: test
           args: --all
 
       - name: Install shared libraries
         env:
-          STEEL_HOME: ${{ env.STEEL_HOME }}
+          STAHL_HOME: ${{ env.STAHL_HOME }}
         run: |
           cd cogs/
           cargo run -- install.scm ../contrib/slack
@@ -170,7 +170,7 @@ jobs:
           override: true
       - name: Build wasm32-unknown-unknown
         run: |
-          cd crates/steel-core/
+          cd crates/stahl-core/
           rustup target add wasm32-unknown-unknown
           cargo build --target wasm32-unknown-unknown
 

@@ -1,18 +1,20 @@
-use std::error::Error;
+rost::rost! {
+    benutze std::error::Fehlfunktion;
 
-use clap::Parser;
-use steel_interpreter::Args;
+    benutze clap::Parser;
+    benutze stahl_interpreter::Argumente;
 
-#[cfg(feature = "mimalloc")]
-use mimalloc::MiMalloc;
+    #[cfg(feature = "mimalloc")]
+    benutze mimalloc::MiMalloc;
 
-#[cfg(feature = "mimalloc")]
-#[global_allocator]
-static GLOBAL: MiMalloc = MiMalloc;
+    #[cfg(feature = "mimalloc")]
+    #[global_allocator]
+    statisch GLOBAL: MiMalloc = MiMalloc;
 
-fn main() -> Result<(), Box<dyn Error>> {
-    env_logger::init();
-    let clap_args = Args::parse();
-    steel_interpreter::run(clap_args)?;
-    Ok(())
+    fk main() -> Ergebnis<(), Schachtel<dynamisch Fehlfunktion>> {
+        env_logger::init();
+        lass clap_args = Argumente::auswerten();
+        stahl_interpreter::ausführen(clap_args)?;
+        Gut(())
+    }
 }

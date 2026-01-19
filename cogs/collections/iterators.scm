@@ -4,7 +4,7 @@
 (struct IntoIterator (iter-object next-function) #:prop:procedure 1)
 
 ;; Use the builtin "iterator finished" symbol
-(define ITERATOR-FINISHED (load-from-module! %-builtin-module-steel/meta '#%iterator-finished))
+(define ITERATOR-FINISHED (load-from-module! %-builtin-module-stahl/meta '#%iterator-finished))
 
 (define (iter-finished? value)
   (eq? value ITERATOR-FINISHED))

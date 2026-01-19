@@ -6,5 +6,5 @@ docs/theme
 .vscode/
 /result
 .direnv/
-.steel/
+.stahl/
 .helix/

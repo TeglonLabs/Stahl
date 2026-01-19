@@ -1,6 +1,6 @@
 # Memory management
 
-Steel uses a combination of reference counting and a mark and sweep garbage collector in order to manage memory. Important notes regarding this:
+Stahl uses a combination of reference counting and a mark and sweep garbage collector in order to manage memory. Important notes regarding this:
 
 1. All immutable values are reference counted, this includes built in data structures such as:
     - Lists
@@ -27,7 +27,7 @@ Steel uses a combination of reference counting and a mark and sweep garbage coll
 
 ## Reference counting optimizations
 
-One consequence of using reference counted variables is that there will be a non trivial amount of time spent performing reference count operations on values coming and going from the stack. The steel compiler and vm performs a few optimizations to reduce the reference counting thrash, and also to improve the usage of the functional data structures built in.
+One consequence of using reference counted variables is that there will be a non trivial amount of time spent performing reference count operations on values coming and going from the stack. The stahl compiler and vm performs a few optimizations to reduce the reference counting thrash, and also to improve the usage of the functional data structures built in.
 
 Consider the following:
 
@@ -44,7 +44,7 @@ Consider the following:
 
 This is a simple function that takes an input list and reverses it. It does so recursively, calling `reverse` in tail position, meaning we'll get a tail call optimization and this gets converted into a `JUMP` in the VM.
 
-Lists in Steel aren't your classic cons cells - they're implemented more like unrolled linked lists or vlists - meaning they're more like chunks of large contiguous vectors strung together. Copying those on each write to it would be silly, so the compiler analyzes a function and attempts to find the last usage of variable. For every last usage of a variable, the VM doesn't just copy the value from the stack, it actually _moves_ it off of the VM stack - meaning the reference count has the potential to be 1 by the time it hits the last usage of a variable.
+Lists in Stahl aren't your classic cons cells - they're implemented more like unrolled linked lists or vlists - meaning they're more like chunks of large contiguous vectors strung together. Copying those on each write to it would be silly, so the compiler analyzes a function and attempts to find the last usage of variable. For every last usage of a variable, the VM doesn't just copy the value from the stack, it actually _moves_ it off of the VM stack - meaning the reference count has the potential to be 1 by the time it hits the last usage of a variable.
 
 When the reference count is 1, we can perform an in-place mutation of the resulting list - which gives us a nice performance win! So in the above snippet, we see the following bytecode:
 
@@ -144,7 +144,7 @@ Which results in this bytecode:
 
 The first example takes 123 ms to reverse a list of 100000 - whereas the second example takes only 23 ms! In racket, the equivalent code takes somewhere between 2 and 5 ms.
 
-Another toy example of this optimization can be seen here, comparing Steel to Racket:
+Another toy example of this optimization can be seen here, comparing Stahl to Racket:
 
 ```scheme
 

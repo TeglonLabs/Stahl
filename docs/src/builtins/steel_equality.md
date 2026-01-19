@@ -1,4 +1,4 @@
-# steel/equality
+# stahl/equality
 ### **=**
 ### **eq?**
 ### **equal?**

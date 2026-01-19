@@ -1,5 +1,5 @@
-(require "steel/tests/unit-test.scm"
-         (for-syntax "steel/tests/unit-test.scm")
+(require "stahl/tests/unit-test.scm"
+         (for-syntax "stahl/tests/unit-test.scm")
          "merge-sort.scm"
          "trie-sort.scm"
          "quick-sort.scm")

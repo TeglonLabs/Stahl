@@ -1,8 +1,8 @@
 (require "slack.scm")
-(require "steel/time/time.scm"
-         (for-syntax "steel/time/time.scm"))
+(require "stahl/time/time.scm"
+         (for-syntax "stahl/time/time.scm"))
 
-(require "steel/logging/log.scm")
+(require "stahl/logging/log.scm")
 
 (define/contract (process-message body)
   (->/c hash? any/c)

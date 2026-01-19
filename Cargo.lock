@@ -437,7 +437,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "cargo-steel-lib"
+name = "cargo-stahl-lib"
 version = "0.1.0"
 dependencies = [
  "cargo-platform",
@@ -1364,7 +1364,7 @@ checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
 name = "forge"
 version = "0.6.0"
 dependencies = [
- "steel-core",
+ "stahl-core",
 ]
 
 [[package]]
@@ -3073,6 +3073,11 @@ dependencies = [
 ]
 
 [[package]]
+name = "rost"
+version = "0.1.0"
+source = "git+https://github.com/michidk/rost.git#dc31420c97287f8d0c38cf877f24ea217a9b7c15"
+
+[[package]]
 name = "rusqlite"
 version = "0.32.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3509,25 +3514,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "static_assertions"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
-
-[[package]]
-name = "steel-async-webrequests"
+name = "stahl-async-webrequests"
 version = "0.6.0"
 dependencies = [
  "abi_stable",
  "base64 0.22.1",
  "http 0.2.12",
  "isahc",
- "steel-core",
+ "stahl-core",
  "urlencoding",
 ]
 
 [[package]]
-name = "steel-core"
+name = "stahl-core"
 version = "0.6.0"
 dependencies = [
  "abi_stable",
@@ -3536,7 +3535,7 @@ dependencies = [
  "async-ffi",
  "bigdecimal",
  "bincode",
- "cargo-steel-lib",
+ "cargo-stahl-lib",
  "chrono",
  "codespan-reporting",
  "compact_str",
@@ -3575,9 +3574,9 @@ dependencies = [
  "serde_json",
  "smallvec",
  "stacker",
- "steel-derive",
- "steel-gen",
- "steel-parser",
+ "stahl-derive",
+ "stahl-gen",
+ "stahl-parser",
  "strsim 0.11.1",
  "termimad",
  "weak-table",
@@ -3585,7 +3584,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "steel-derive"
+name = "stahl-derive"
 version = "0.5.0"
 dependencies = [
  "proc-macro2",
@@ -3594,14 +3593,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "steel-doc"
+name = "stahl-doc"
 version = "0.6.0"
 dependencies = [
- "steel-core",
+ "stahl-core",
 ]
 
 [[package]]
-name = "steel-gen"
+name = "stahl-gen"
 version = "0.2.0"
 dependencies = [
  "codegen",
@@ -3610,25 +3609,26 @@ dependencies = [
 ]
 
 [[package]]
-name = "steel-interpreter"
+name = "stahl-interpreter"
 version = "0.6.0"
 dependencies = [
- "cargo-steel-lib",
+ "cargo-stahl-lib",
  "clap",
  "env_logger",
  "log",
  "mimalloc",
  "once_cell",
+ "rost",
  "serde",
- "steel-core",
- "steel-derive",
- "steel-doc",
- "steel-repl",
+ "stahl-core",
+ "stahl-derive",
+ "stahl-doc",
+ "stahl-repl",
  "vergen",
 ]
 
 [[package]]
-name = "steel-language-server"
+name = "stahl-language-server"
 version = "0.6.0"
 dependencies = [
  "dashmap 5.5.3",
@@ -3638,23 +3638,23 @@ dependencies = [
  "ropey",
  "serde",
  "serde_json",
- "steel-core",
+ "stahl-core",
  "tokio",
  "tower-lsp",
 ]
 
 [[package]]
-name = "steel-markdown"
+name = "stahl-markdown"
 version = "0.1.0"
 dependencies = [
  "abi_stable",
  "pulldown-cmark",
- "steel-core",
+ "stahl-core",
  "syntect",
 ]
 
 [[package]]
-name = "steel-parser"
+name = "stahl-parser"
 version = "0.6.0"
 dependencies = [
  "compact_str",
@@ -3670,16 +3670,16 @@ dependencies = [
 ]
 
 [[package]]
-name = "steel-regex"
+name = "stahl-regex"
 version = "0.6.0"
 dependencies = [
  "abi_stable",
  "regex",
- "steel-core",
+ "stahl-core",
 ]
 
 [[package]]
-name = "steel-repl"
+name = "stahl-repl"
 version = "0.6.0"
 dependencies = [
  "colored",
@@ -3688,82 +3688,88 @@ dependencies = [
  "dirs",
  "rustyline",
  "rustyline-derive",
- "steel-core",
- "steel-parser",
+ "stahl-core",
+ "stahl-parser",
 ]
 
 [[package]]
-name = "steel-rustls"
+name = "stahl-rustls"
 version = "0.6.0"
 dependencies = [
  "abi_stable",
  "flate2",
  "rustls 0.23.23",
- "steel-core",
+ "stahl-core",
  "webpki-roots",
 ]
 
 [[package]]
-name = "steel-sqlite"
+name = "stahl-sqlite"
 version = "0.6.0"
 dependencies = [
  "abi_stable",
  "rusqlite",
- "steel-core",
+ "stahl-core",
 ]
 
 [[package]]
-name = "steel-sys-info"
+name = "stahl-sys-info"
 version = "0.6.0"
 dependencies = [
  "abi_stable",
- "steel-core",
+ "stahl-core",
  "sys-info",
 ]
 
 [[package]]
-name = "steel-toml"
+name = "stahl-toml"
 version = "0.6.0"
 dependencies = [
  "abi_stable",
- "steel-core",
+ "stahl-core",
  "toml",
 ]
 
 [[package]]
-name = "steel-values"
+name = "stahl-values"
 version = "0.1.0"
 
 [[package]]
-name = "steel-webrequests"
+name = "stahl-webrequests"
 version = "0.1.0"
 dependencies = [
  "abi_stable",
  "async-channel 2.3.1",
- "steel-core",
+ "stahl-core",
  "ureq",
 ]
 
 [[package]]
-name = "steel-webserver"
+name = "stahl-webserver"
 version = "0.1.0"
 dependencies = [
  "abi_stable",
  "axum",
  "crossbeam",
  "serde_json",
- "steel-core",
+ "stahl-core",
  "tokio",
 ]
 
 [[package]]
-name = "steel-websockets"
+name = "stahl-websockets"
 version = "0.1.0"
 dependencies = [
  "abi_stable",
- "steel-core",
+ "stahl-core",
  "tungstenite",
 ]
+
+[[package]]
+name = "static_assertions"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 
 [[package]]
 name = "str_indices"

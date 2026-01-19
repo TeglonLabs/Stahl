@@ -30,7 +30,7 @@
 ;;
 ;; -------------------------------------------------------------------
 ;;
-;; Modified by Matt Paras for use within the Steel test suite
+;; Modified by Matt Paras for use within the Stahl test suite
 
 (require "tests/unit-test.scm"
          (for-syntax "tests/unit-test.scm"))

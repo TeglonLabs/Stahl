@@ -38,7 +38,7 @@ This is how we bind values to symbols, using `(define symbol value)`:
 Here, we've created a _binding_ between the symbol `a` and a number literal. Consequently, further
 evaluation of `a` yields the elite integer. It's worth noting that regardless of whether `a` is
 bound and used across different expressions (in separate interpreter entries), it still retains its
-value. Why? Because the Steel session we're in introduces a _scope_, a context used in evaluation to
+value. Why? Because the Stahl session we're in introduces a _scope_, a context used in evaluation to
 resolve symbol bindings.
 
 Another example:
@@ -58,7 +58,7 @@ If `define` seems reminiscent of global variables to you, you're not alone. Whil
 defining function bindings (more on that later) or constants, there must be a better way for local
 bindings.
 
-Coming from Scheme, Steel has two ways to do it: one is a Lisp classic, `let` bindings, and the
+Coming from Scheme, Stahl has two ways to do it: one is a Lisp classic, `let` bindings, and the
 other is local scope `define`.
 
 #### `let`
@@ -113,6 +113,6 @@ error[E02]: FreeIdentifier
   │ ^ b
 ```
 
-As we can see, in Steel, `define` inside of a local scope could be used instead of `let` bindings,
+As we can see, in Stahl, `define` inside of a local scope could be used instead of `let` bindings,
 and it won't alter the outer scope.
 

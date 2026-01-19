@@ -1,0 +1,16 @@
+[package]
+name = "stahl-sys-info"
+version.workspace = true
+edition = "2021"
+
+
+[lib]
+name = "stahl_sys_info"
+crate-type = ["cdylib"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+stahl-core = { workspace = true }
+abi_stable = "0.11.1"
+sys-info = "0.9.1"

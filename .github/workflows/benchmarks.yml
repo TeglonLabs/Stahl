@@ -28,7 +28,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: dtolnay/rust-toolchain@nightly
-    - run: cd crates/steel-core && cargo bench --bench my_benchmark -- --output-format bencher | tee output.txt
+    - run: cd crates/stahl-core && cargo bench --bench my_benchmark -- --output-format bencher | tee output.txt
     - uses: actions/cache@v1
       with:
         path: ./cache
@@ -36,6 +36,6 @@ jobs:
     - uses: rhysd/github-action-benchmark@v1
       with:
         tool: 'cargo'
-        output-file-path: crates/steel-core/output.txt
+        output-file-path: crates/stahl-core/output.txt
         github-token: ${{secrets.GITHUB_TOKEN}}
         auto-push: true

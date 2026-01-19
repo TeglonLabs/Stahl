@@ -1,6 +1,6 @@
-use steel::steel_vm::engine::Engine;
+use stahl::stahl_vm::engine::Engine;
 
-// Steel allows for flexibility with modules as well. If you wanted to
+// Stahl allows for flexibility with modules as well. If you wanted to
 // expose a module with a clean api, you can do so using the `provide` syntax.
 // `require` is used to bring a module into scope - this requires the relative path
 // (from the directory of whatever project main is in), or absolute path to the script.

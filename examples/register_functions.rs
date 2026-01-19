@@ -1,5 +1,5 @@
-use steel::steel_vm::engine::Engine;
-use steel::steel_vm::register_fn::RegisterFn;
+use stahl::stahl_vm::engine::Engine;
+use stahl::stahl_vm::register_fn::RegisterFn;
 
 fn external_function(arg1: usize, arg2: usize) -> usize {
     arg1 + arg2
@@ -25,11 +25,11 @@ pub fn main() {
     let mut vm = Engine::new();
 
     // Here we can register functions
-    // Any function can accept parameters that implement `FromSteelVal` and
-    // return values that implement `IntoSteelVal`
+    // Any function can accept parameters that implement `FromStahlVal` and
+    // return values that implement `IntoStahlVal`
     vm.register_fn("external-function", external_function);
 
-    // See the docs for more information about `FromSteelVal` and `IntoSteelVal`
+    // See the docs for more information about `FromStahlVal` and `IntoStahlVal`
     // but we can see even functions that accept/return Option<T> or Result<T,E>
     // can be registered
     vm.register_fn("option-function", option_function);
@@ -68,6 +68,6 @@ pub fn main() {
     println!("baz: {baz:?}");
     assert_eq!("bananas".to_string(), baz.unwrap());
 
-    // let res: SteelVal = vm.extract("res").unwrap();
+    // let res: StahlVal = vm.extract("res").unwrap();
     // println!("res: {}", res);
 }

@@ -1,12 +1,12 @@
 ;; TODO:
 ;; Parse the arguments from the command line, in this case either grab the path to the directory, or a git url, or the local directory
 ;; Parse the cog file, and check the dependencies. If any need to be downloaded, fetch those
-;; Install to $STEEL_HOME/cogs to make it available for anything to download
+;; Install to $STAHL_HOME/cogs to make it available for anything to download
 ;; Version resolution... for now just assume everything is compatible with everything without versions
 ;; Storing versions in a manifest would be nice - a project has an associated manifest that pins versions.
 
 ;; Load in contracts for stress testing
-(require "steel/result")
+(require "stahl/result")
 
 (require "parser.scm")
 (require (only-in "download.scm"
@@ -22,7 +22,7 @@
          parse-cog-file
          install-package
          install-package-and-log
-         *STEEL_HOME*
+         *STAHL_HOME*
          check-install-package
          walk-and-install
          uninstall-package
@@ -42,11 +42,11 @@
       path))
 
 ;; Should make this lazy?
-(define *STEEL_HOME* (~> (steel-home-location) (append-with-separator "cogs")))
-(define *NATIVE-SOURCES-DIR* (~> (steel-home-location) (append-with-separator "sources")))
-(define *COG-SOURCES* (~> (steel-home-location) (append-with-separator "cog-sources")))
-(define *DYLIB-DIR* (~> (steel-home-location) (append-with-separator "native")))
-(define *BIN* (~> (steel-home-location) (append-with-separator "bin")))
+(define *STAHL_HOME* (~> (stahl-home-location) (append-with-separator "cogs")))
+(define *NATIVE-SOURCES-DIR* (~> (stahl-home-location) (append-with-separator "sources")))
+(define *COG-SOURCES* (~> (stahl-home-location) (append-with-separator "cog-sources")))
+(define *DYLIB-DIR* (~> (stahl-home-location) (append-with-separator "native")))
+(define *BIN* (~> (stahl-home-location) (append-with-separator "bin")))
 
 (define (for-each func lst)
   (if (null? lst)
@@ -58,7 +58,7 @@
         (for-each func (cdr lst)))))
 
 (define (shebang-line)
-  "#!/usr/bin/env steel")
+  "#!/usr/bin/env stahl")
 
 ;;@doc
 ;; Given a package spec, install that package directly to the file system
@@ -66,7 +66,7 @@
   (->/c hash? string?)
 
   (define destination
-    (convert-path (string-append *STEEL_HOME* "/" (symbol->string (hash-get package 'package-name)))))
+    (convert-path (string-append *STAHL_HOME* "/" (symbol->string (hash-get package 'package-name)))))
 
   (displayln "=> Installing: " package)
   (displayln "   ...Installing to:" destination)
@@ -138,12 +138,12 @@
      (run-dylib-installation source #:subdir (or (hash-try-get dylib-dependency '#:subdir) ""))]
 
     [else
-     (run-dylib-installation (append-with-separator *STEEL_HOME*
+     (run-dylib-installation (append-with-separator *STAHL_HOME*
                                                     (symbol->string (hash-ref package 'package-name)))
                              #:subdir (or (hash-try-get dylib-dependency '#:subdir) ""))]))
 
 (define (list-package-index)
-  (eval '(require "steel/packages/packages.scm"))
+  (eval '(require "stahl/packages/packages.scm"))
   (eval 'package-index))
 
 (define (install-package-from-pkg-index index package)
@@ -172,7 +172,7 @@
   (when (package-installed? (hash-ref cog-dependency '#:name))
     (displayln "=> Package already installed:" (hash-ref cog-dependency '#:name)))
 
-  ;; For each cog, go through and install the package to the `STEEL_HOME` directory.
+  ;; For each cog, go through and install the package to the `STAHL_HOME` directory.
   ;; This should not only check if the package is installed, but also check
   ;; if the package manifest matches the one that we have. If there is a change, we
   ;; should update the installation accordingly.
@@ -192,7 +192,7 @@
          ; (for-each (lambda (dylib)
          ;             (run-dylib-installation
          ;              ;; This should be where the package is downloaded to.
-         ;              (append-with-separator *STEEL_HOME* (hash-ref cog-dependency '#:name))
+         ;              (append-with-separator *STAHL_HOME* (hash-ref cog-dependency '#:name))
          ;              ;; This is the subdirectory in which the individual module
          ;              ;; containing the dylib should be loaded
          ;              #:subdir (or (hash-try-get dylib '#:subdir) "")))
@@ -247,7 +247,7 @@
 ;; package installation process where the index is constantly getting updated.
 (define (package-installed? name)
   (define destination
-    (string-append *STEEL_HOME*
+    (string-append *STAHL_HOME*
                    "/"
                    (if (string? name)
                        name
@@ -258,7 +258,7 @@
 (define/contract (uninstall-package package)
   (->/c hash? string?)
   (define destination
-    (string-append *STEEL_HOME* "/" (symbol->string (hash-get package 'package-name))))
+    (string-append *STAHL_HOME* "/" (symbol->string (hash-get package 'package-name))))
   (displayln "Deleting:" destination)
 
   ;; Check if this produced a dylib, and if so, delete it
@@ -307,7 +307,7 @@
 
   ;; Grab the map of installed cogs on the file system.
   ;; We will check if the cog is already installed before patching over the directory
-  (define installed-cogs (discover-cogs *STEEL_HOME*))
+  (define installed-cogs (discover-cogs *STAHL_HOME*))
 
   (when (not (path-exists? *DYLIB-DIR*))
     (displayln "dylib directory does not exist, creating now...")

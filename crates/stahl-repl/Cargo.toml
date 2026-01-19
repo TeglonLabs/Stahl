@@ -1,0 +1,23 @@
+[package]
+name = "stahl-repl"
+version.workspace = true
+authors = ["mattwparas <matthewparas2020@u.northwestern.edu>"]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/TeglonLabs/Stahl"
+description = "REPL library for stahl"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rustyline = "14.0.0"
+rustyline-derive = "0.7.0"
+colored = "2.0.0"
+stahl-core = { workspace = true }
+stahl-parser = { path = "../stahl-parser", version = "0.6.0"}
+dirs = "5.0.1"
+ctrlc = "3.4.4"
+crossbeam = "0.8.4"
+
+[features]
+interrupt = ["stahl-core/interrupt"]

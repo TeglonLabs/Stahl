@@ -1,4 +1,4 @@
-(define package-name 'steel/repl)
+(define package-name 'stahl/repl)
 (define version "0.1.0")
 
 ;; Core library, requires no dependencies

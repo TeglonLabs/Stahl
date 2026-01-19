@@ -48,8 +48,8 @@ jobs:
           override: true
           components: llvm-tools-preview
 
-      - name: Set the STEEL_HOME environment variable
-        run: echo STEEL_HOME=${PWD}/.steel-sync >> $GITHUB_ENV 
+      - name: Set the STAHL_HOME environment variable
+        run: echo STAHL_HOME=${PWD}/.stahl-sync >> $GITHUB_ENV
         
       - name: Install cargo-pgo
         run: cargo install cargo-pgo
@@ -62,29 +62,29 @@ jobs:
         # Use `cargo pgo build -- --bin foo` if you have multiple binaries
         run: cargo pgo build
         
-      - name: install steel dylib installer
+      - name: install stahl dylib installer
         env:
-          STEEL_HOME: ${{ env.STEEL_HOME }}
-        run: mkdir -p $STEEL_HOME/native && cd crates/cargo-steel-lib && cargo install --path .
+          STAHL_HOME: ${{ env.STAHL_HOME }}
+        run: mkdir -p $STAHL_HOME/native && cd crates/cargo-stahl-lib && cargo install --path .
 
       - name: Install cogs
         env:
-          STEEL_HOME: ${{ env.STEEL_HOME }}
+          STAHL_HOME: ${{ env.STAHL_HOME }}
         run: |
-          echo $STEEL_HOME
-          mkdir -p .steel/cogs
+          echo $STAHL_HOME
+          mkdir -p .stahl/cogs
           cd cogs/
           cargo run -- install.scm
 
       - name: Gather PGO profiles
         env:
-          STEEL_HOME: ${{ env.STEEL_HOME }}
+          STAHL_HOME: ${{ env.STAHL_HOME }}
         run: |
-          ./target/${{ matrix.os.arch }}/release/steel r7rs-benchmarks/scheme.scm
-          ./target/${{ matrix.os.arch }}/release/steel r7rs-benchmarks/simplex.scm
-          ./target/${{ matrix.os.arch }}/release/steel r7rs-benchmarks/array1.scm
-          ./target/${{ matrix.os.arch }}/release/steel r7rs-benchmarks/triangl.scm
-          ./target/${{ matrix.os.arch }}/release/steel benchmarks/fib/fib.scm
+          ./target/${{ matrix.os.arch }}/release/stahl r7rs-benchmarks/scheme.scm
+          ./target/${{ matrix.os.arch }}/release/stahl r7rs-benchmarks/simplex.scm
+          ./target/${{ matrix.os.arch }}/release/stahl r7rs-benchmarks/array1.scm
+          ./target/${{ matrix.os.arch }}/release/stahl r7rs-benchmarks/triangl.scm
+          ./target/${{ matrix.os.arch }}/release/stahl benchmarks/fib/fib.scm
 
       - name: Build optimized binary
         run: cargo pgo optimize
@@ -94,7 +94,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pgo-nightly-build-${{ matrix.os.arch }}
-          path: ${{ github.workspace }}/target/${{ matrix.os.arch }}/release/steel
+          path: ${{ github.workspace }}/target/${{ matrix.os.arch }}/release/stahl
           retention-days: 30
 
       - name: Archive pgo optimized binary (windows)
@@ -102,7 +102,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pgo-nightly-build-${{ matrix.os.arch }}
-          path: target\${{ matrix.os.arch }}\release\steel.exe
+          path: target\${{ matrix.os.arch }}\release\stahl.exe
           retention-days: 30
 
 

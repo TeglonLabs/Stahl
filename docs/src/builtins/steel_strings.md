@@ -1,5 +1,5 @@
-# steel/strings
-Strings in Steel are immutable, fixed length arrays of characters. They are heap allocated, and
+# stahl/strings
+Strings in Stahl are immutable, fixed length arrays of characters. They are heap allocated, and
 are implemented under the hood as referenced counted Rust `Strings`. Rust `Strings` are stored
 as UTF-8 encoded bytes.
 ### **char->integer**

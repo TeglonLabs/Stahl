@@ -1,6 +1,6 @@
 # Transducers
 
-Inspired by clojure's transducers, `Steel` has a similar object that is somewhere half way in between transducers and iterators. Consider the following:
+Inspired by clojure's transducers, `Stahl` has a similar object that is somewhere half way in between transducers and iterators. Consider the following:
 
 ```scheme
 

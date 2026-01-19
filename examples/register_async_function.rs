@@ -1,5 +1,5 @@
-use steel::steel_vm::engine::Engine;
-use steel::steel_vm::register_fn::RegisterFn;
+use stahl::stahl_vm::engine::Engine;
+use stahl::stahl_vm::register_fn::RegisterFn;
 
 use env_logger::Builder;
 use log::LevelFilter;
@@ -17,7 +17,7 @@ pub fn main() {
     let mut builder = Builder::new();
 
     builder
-        .filter(Some("steel::steel_vm::contracts"), LevelFilter::Trace)
+        .filter(Some("stahl::stahl_vm::contracts"), LevelFilter::Trace)
         .init();
 
     let mut vm = Engine::new();

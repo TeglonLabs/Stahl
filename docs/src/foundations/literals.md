@@ -2,8 +2,8 @@
 
 Literals are evaluated to themselves: numbers and string literals.
 
-Let's fire up a Steel interpreter
-(or use [the online one](https://mattwparas.github.io/steel-playground/dev/))
+Let's fire up a Stahl interpreter
+(or use [the online one](https://mattwparas.github.io/stahl-playground/dev/))
 to take a look at some examples.
 
 In the following code examples, lambda precedes user input, and `=>` indicates the evaluation result
@@ -30,8 +30,8 @@ evaluated to itself. What about string literals?
 λ > "hello"
 => "hello"
 
-λ > "steel"
-=> "steel"
+λ > "stahl"
+=> "stahl"
 ```
 
 Nothing unexpected happens, as for characters:

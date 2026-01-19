@@ -3,5 +3,5 @@
 
 ;; Core library, requires no dependencies.
 (define dependencies
-  '((#:name steel-websockets #:path "../libs/steel-websockets")
-    (#:name steel-webrequests #:path "../libs/steel-webrequests")))
+  '((#:name stahl-websockets #:path "../libs/stahl-websockets")
+    (#:name stahl-webrequests #:path "../libs/stahl-webrequests")))

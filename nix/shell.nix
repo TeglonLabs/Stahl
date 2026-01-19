@@ -2,7 +2,7 @@
   lib,
   stdenv,
   mkShell,
-  steel,
+  stahl,
   cargo,
   rustc,
   libiconv,
@@ -13,7 +13,7 @@
 }:
 mkShell {
   shellHook = ''
-    export STEEL_HOME="${steel}/lib/"
+    export STAHL_HOME="${stahl}/lib/"
   '';
   packages =
     [
@@ -27,5 +27,5 @@ mkShell {
       CoreServices
       SystemConfiguration
     ];
-    inputsFrom = steel;
+    inputsFrom = stahl;
 }

@@ -1,0 +1,15 @@
+[package]
+name = "stahl-toml"
+version.workspace = true
+edition = "2021"
+
+[lib]
+name = "stahl_toml"
+crate-type = ["cdylib"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+stahl-core = { workspace = true }
+toml = "*"
+abi_stable = "0.11.1"

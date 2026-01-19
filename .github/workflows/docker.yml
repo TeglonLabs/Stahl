@@ -20,7 +20,7 @@ jobs:
         if: ${{ github.event_name != 'pull_request' }}
         uses: docker/login-action@v3
         with:
-          username: steelscheme
+          username: stahlscheme
           password: ${{ secrets.DOCKER_HUB_PWD }}
 
       - name: Setup Docker Buildx
@@ -33,11 +33,11 @@ jobs:
       #   with:
       #     push: false
       #     platforms: linux/amd64,linux/arm64
-      #     tags: steelscheme/steel:latest
+      #     tags: stahlscheme/stahl:latest
       #     # cache-from: type=gha
       #     # cache-to: type=gha,mode=max
-      #     cache-from: type=registry,ref=steelscheme/steel:buildcache
-      #     cache-to: type=registry,ref=steelscheme/steel:buildcache,mode=max
+      #     cache-from: type=registry,ref=stahlscheme/stahl:buildcache
+      #     cache-to: type=registry,ref=stahlscheme/stahl:buildcache,mode=max
 
       - name: Build & publish the docker image
         uses: docker/build-push-action@v6
@@ -45,6 +45,6 @@ jobs:
         with:
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: steelscheme/steel:latest
-          cache-from: type=registry,ref=steelscheme/steel:buildcache
-          cache-to: type=registry,ref=steelscheme/steel:buildcache,mode=max
+          tags: stahlscheme/stahl:latest
+          cache-from: type=registry,ref=stahlscheme/stahl:buildcache
+          cache-to: type=registry,ref=stahlscheme/stahl:buildcache,mode=max

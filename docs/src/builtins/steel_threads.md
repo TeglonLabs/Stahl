@@ -1,4 +1,4 @@
-# steel/threads
+# stahl/threads
 ### **disconnected-channel-object?**
 Returns `#t` if the value is an disconnected-channel object.
 

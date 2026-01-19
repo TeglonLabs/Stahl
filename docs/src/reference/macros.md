@@ -1,6 +1,6 @@
 # Macros
 
-Steel contains a limited form of the `syntax-rules` that scheme provides. These macros build on the small primary language constructs that exist. Consider the following:
+Stahl contains a limited form of the `syntax-rules` that scheme provides. These macros build on the small primary language constructs that exist. Consider the following:
 
 ```scheme
 (define-syntax or
@@ -22,4 +22,4 @@ This will actually expand into something like this
    #f)
 ```
 
-These macros allow for a simple extension of Steel to however you see fit - defining macros in terms of the syntax rules format is fairly straightforward.
+These macros allow for a simple extension of Stahl to however you see fit - defining macros in terms of the syntax rules format is fairly straightforward.

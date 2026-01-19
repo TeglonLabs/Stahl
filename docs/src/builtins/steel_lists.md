@@ -1,5 +1,5 @@
-# steel/lists
-Lists in Steel have an interface that matches those of classic schemes or lisps.
+# stahl/lists
+Lists in Stahl have an interface that matches those of classic schemes or lisps.
 At face value, they appear to be implemented as cons cells - however, under the hood
 they are actually implemented as unrolled linked lists.
 
@@ -145,7 +145,7 @@ Returns a newly allocated list containing the vs as its elements.
 ### **list-ref**
 Returns the value located at the given index. Will raise an error if you try to index out of bounds.
 
-Note: Runs in time proportional to the length of the list, however lists in Steel are implemented in such a fashion that the
+Note: Runs in time proportional to the length of the list, however lists in Stahl are implemented in such a fashion that the
 time complexity is O(n/64). Meaning, for small lists this can be constant.
 
 (list-ref lst index) -> list?

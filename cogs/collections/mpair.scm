@@ -1,6 +1,6 @@
 ;; Compatible layer for R7RS Mutable pairs.
 
-; (require "steel/result")
+; (require "stahl/result")
 
 (struct mcons (mcar mcdr)
   #:mutable
@@ -81,5 +81,5 @@
 ; λ (cogs/collections/mpair.scm) > (define my-pair (cons 10 20 #:mutable #true))
 ; thread 'main' panicked at 'assertion failed: `(left == right)`
 ;   left: `999`,
-;  right: `1000`', crates/steel-core/src/env.rs:59:13
+;  right: `1000`', crates/stahl-core/src/env.rs:59:13
 ; note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

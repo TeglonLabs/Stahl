@@ -1,10 +1,10 @@
 # Embedding values
 
-Rust values, types, and functions are easily embedded into Steel. Using the `register_fn` call, you can embed functions easily:
+Rust values, types, and functions are easily embedded into Stahl. Using the `register_fn` call, you can embed functions easily:
 
 ```rust,noplaypen
-use steel_vm::engine::Engine;
-use steel_vm::register_fn::RegisterFn;
+use stahl_vm::engine::Engine;
+use stahl_vm::register_fn::RegisterFn;
 
 fn external_function(arg1: usize, arg2: usize) -> usize {
     arg1 + arg2
@@ -26,11 +26,11 @@ pub fn main() {
     let mut vm = Engine::new();
 
     // Here we can register functions
-    // Any function can accept parameters that implement `FromSteelVal` and
-    // return values that implement `IntoSteelVal`
+    // Any function can accept parameters that implement `FromStahlVal` and
+    // return values that implement `IntoStahlVal`
     vm.register_fn("external-function", external_function);
 
-    // See the docs for more information about `FromSteelVal` and `IntoSteelVal`
+    // See the docs for more information about `FromStahlVal` and `IntoStahlVal`
     // but we can see even functions that accept/return Option<T> or Result<T,E>
     // can be registered
     vm.register_fn("option-function", option_function);
@@ -65,14 +65,14 @@ pub fn main() {
 We can also embed structs themselves:
 
 ```rust,noplaypen
-use steel_vm::engine::Engine;
-use steel_vm::register_fn::RegisterFn;
+use stahl_vm::engine::Engine;
+use stahl_vm::register_fn::RegisterFn;
 
-use steel_derive::Steel;
+use stahl_derive::Stahl;
 
-// In order to register a type with Steel,
-// it must implement Clone, Debug, and Steel
-#[derive(Clone, Debug, Steel, PartialEq)]
+// In order to register a type with Stahl,
+// it must implement Clone, Debug, and Stahl
+#[derive(Clone, Debug, Stahl, PartialEq)]
 pub struct ExternalStruct {
     foo: usize,
     bar: String,
@@ -102,7 +102,7 @@ pub fn main() {
     // Registering a type gives access to a predicate for the type
     vm.register_type::<ExternalStruct>("ExternalStruct?");
 
-    // Structs in steel typically have a constructor that is the name of the struct
+    // Structs in stahl typically have a constructor that is the name of the struct
     vm.register_fn("ExternalStruct", ExternalStruct::new);
 
     // register_fn can be chained
@@ -157,9 +157,9 @@ pub fn main() {
 }
 ```
 
-## IntoSteelVal and FromSteelVal
+## IntoStahlVal and FromStahlVal
 
-Types that implement `IntoSteelVal` and `FromSteelVal` and be returned and passed into rust functions, respectively. Take the following for example:
+Types that implement `IntoStahlVal` and `FromStahlVal` and be returned and passed into rust functions, respectively. Take the following for example:
 
 ```rust
 
@@ -169,14 +169,14 @@ fn foo(value: isize) -> String {
     
 ```
 
-This means that steel values will attempt to be coerced to the type in the function signature, and the value that this function returns will then attempt to be coerced into a that Steel understands.
+This means that stahl values will attempt to be coerced to the type in the function signature, and the value that this function returns will then attempt to be coerced into a that Stahl understands.
 
 There are some special case conversions that happen specifically:
 
-### `IntoSteelVal`
+### `IntoStahlVal`
 
-* Vec<T> -> Steel list
-* HashMap<K, V> -> Steel hashmap
-* HashSet<T> -> Steel hashset
+* Vec<T> -> Stahl list
+* HashMap<K, V> -> Stahl hashmap
+* HashSet<T> -> Stahl hashset
 * Result<T, E> -> if `Ok(T)` then T else `(error E)`
 * Option<T> -> if `Some(T)` then T else `#false`

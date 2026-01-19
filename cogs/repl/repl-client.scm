@@ -1,7 +1,7 @@
-(require-builtin steel/tcp)
-(require-builtin #%private/steel/readline)
+(require-builtin stahl/tcp)
+(require-builtin #%private/stahl/readline)
 
-(require "steel/sync")
+(require "stahl/sync")
 
 (define channels (channels/new))
 (define sender (channels-sender channels))

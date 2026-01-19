@@ -1,4 +1,4 @@
-# steel/bytevectors
+# stahl/bytevectors
 ### **byte?**
 Returns `#t` if the given value is a byte, meaning an exact
 integer between 0 and 255 inclusive, `#f` otherwise.

@@ -1,6 +1,6 @@
-(require-builtin steel/process)
-(require-builtin steel/transducers)
-(require-builtin steel/meta)
+(require-builtin stahl/process)
+(require-builtin stahl/transducers)
+(require-builtin stahl/meta)
 
 (require "tests/unit-test.scm"
          (for-syntax "tests/unit-test.scm"))

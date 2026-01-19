@@ -9,7 +9,7 @@ This shouldn't be allowed, otherwise we're gonna run into a weird state.
 
 ### Modules
 
-Modules are pretty busted as well. Because modules get shared at the top level, their requires also seem to get shared at the top level as well, for instance, see `steel/tests/modules/main.rkt` - b shows up at the top level even if b is not required. This is not what we want, it should have its own dedicated namespace thats not polluted.
+Modules are pretty busted as well. Because modules get shared at the top level, their requires also seem to get shared at the top level as well, for instance, see `stahl/tests/modules/main.rkt` - b shows up at the top level even if b is not required. This is not what we want, it should have its own dedicated namespace thats not polluted.
 	- Modules _should_ be able to live on their own. We create one top level one, and each sub module should be able to access it independently, with proper namespacing. If every module just mangles their definitions with a module prefix, we should be in a good spot I think.
 
 The transformation should look like this:

@@ -1,4 +1,4 @@
-# steel/meta
+# stahl/meta
 ### **command-line**
 Returns the command line passed to this process,
 including the command name as first argument.
@@ -56,7 +56,7 @@ Returns the message of an error object.
 ### **set-env-var!**
 ### **set-strong-box!**
 ### **set-test-mode!**
-### **steel-home-location**
+### **stahl-home-location**
 ### **struct->list**
 ### **unbox**
 ### **unbox-strong**

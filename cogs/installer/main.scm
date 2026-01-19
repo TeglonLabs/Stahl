@@ -1,4 +1,4 @@
-; (require "steel/command-line/args.scm")
+; (require "stahl/command-line/args.scm")
 (require "package.scm")
 (require "parser.scm")
 (require "download.scm")
@@ -19,7 +19,7 @@
 
   (define version-width (string-length "Version"))
 
-  (displayln "Listing packages from: " *STEEL_HOME*)
+  (displayln "Listing packages from: " *STAHL_HOME*)
   (displayln)
 
   (display "Package")
@@ -45,14 +45,14 @@
 ;; TODO: Move this to `installer/package.scm`
 (define (refresh-package-index index)
   (define package-spec
-    (download-cog-to-sources-and-parse-module "steel/packages"
-                                              "https://github.com/mattwparas/steel-packages.git"))
+    (download-cog-to-sources-and-parse-module "stahl/packages"
+                                              "https://github.com/TeglonLabs/Stahl-packages.git"))
   (check-install-package index package-spec))
 
 ;; TODO: Move this to `installer/package.scm`
 (define (list-package-index)
   ;; What is going on here?
-  (eval '(require "steel/packages/packages.scm"))
+  (eval '(require "stahl/packages/packages.scm"))
   (eval 'package-index))
 
 (define (print-package-index)
@@ -198,11 +198,11 @@
   (define spec (hash-insert (parse-cog-file (car cog-files)) 'path (current-directory)))
   (define entrypoint (~> (apply hash (hash-ref spec 'entrypoint)) (hash-ref '#:path)))
   ;; Run the entrypoint specified
-  (~> (command "steel" (list entrypoint)) spawn-process Ok->value wait))
+  (~> (command "stahl" (list entrypoint)) spawn-process Ok->value wait))
 
 (define (render-help)
   (displayln
-   "Forge - the Steel Packager Manager
+   "Forge - the Stahl Packager Manager
 
 Usage:
   forge <command> [options]
@@ -224,13 +224,13 @@ Commands:
 (define (get-command-line-args)
   (define args (command-line))
   ;; Running as a program, vs embedded elsewhere?
-  (if (ends-with? (car args) "steel")
+  (if (ends-with? (car args) "stahl")
       (drop args 2)
       (drop args 1)))
 
 (provide main)
 (define (main)
-  (define package-index (discover-cogs *STEEL_HOME*))
+  (define package-index (discover-cogs *STAHL_HOME*))
   (define command-line-args (get-command-line-args))
 
   (when (empty? command-line-args)

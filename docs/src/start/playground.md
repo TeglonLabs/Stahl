@@ -1,10 +1,10 @@
 # Online Playground
 
-The Steel Playground allows you to try Steel out directly from your browser. Visit the Steel Playground at:
+The Stahl Playground allows you to try Stahl out directly from your browser. Visit the Stahl Playground at:
 
-<https://mattwparas.github.io/steel-playground/dev/>
+<https://mattwparas.github.io/stahl-playground/dev/>
 
-The Steel Playground's environment is as follows:
+The Stahl Playground's environment is as follows:
 
 - Builtin modules are supported and are automatically imported.
 - Dylibs are not supported.
@@ -17,9 +17,9 @@ functions.
 
 ## Bytecode
 
-Bytecode renders the Bytecode that Steel generates from the Steel
+Bytecode renders the Bytecode that Stahl generates from the Stahl
 code. The Bytecode is a low level representation of the code that is
-executed by the Steel interpretter.
+executed by the Stahl interpretter.
 
 ## Raw AST
 

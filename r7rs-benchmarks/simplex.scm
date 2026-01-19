@@ -10,7 +10,7 @@
 ;         (scheme write)
 ;         (scheme time))
 
-; (require "steel/mutable-vectors")
+; (require "stahl/mutable-vectors")
 
 (define vector-ref mut-vector-ref)
 ; (define vector-set! mutable-vector-set!)

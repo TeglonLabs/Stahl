@@ -1,4 +1,4 @@
-(require (only-in "steel-webrequests/webrequests.scm"
+(require (only-in "stahl-webrequests/webrequests.scm"
                   client/new
                   client/post
                   with-bearer-auth
@@ -6,7 +6,7 @@
                   call
                   response->json))
 
-(#%require-dylib "libsteel_websockets"
+(#%require-dylib "libstahl_websockets"
                  (only-in ws/message-ping?
                           ws/message-pong?
                           ws/message-text
@@ -17,9 +17,9 @@
                           ws/read-message!
                           ws/write-message!))
 
-(require "steel/result")
-(require "steel/logging/log.scm")
-(require-builtin steel/time)
+(require "stahl/result")
+(require "stahl/logging/log.scm")
+(require-builtin stahl/time)
 
 (provide event-loop
          send-message
